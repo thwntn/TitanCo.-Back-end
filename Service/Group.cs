@@ -23,6 +23,7 @@ public class GroupService(
 
     public List<Group> List(int userId)
     {
+        Logger.Log(userId);
         var groups = _databaseContext
             .Group
             .Include(group => group.DataGroups)
@@ -139,13 +140,13 @@ public class GroupService(
         return string.Empty;
     }
 
-    public List<MStogare.StogareWithCounter> ListStogare(int userId, int groupId, int stogareId)
+    public List<MStogare.StogareWithCounter> ListStogare(int userId, int groupId)
     {
         var stogares = _databaseContext
             .Stogare
             .Where(
                 stogare =>
-                    stogare.GroupId == groupId && stogare.Parent == stogareId && stogare.Status == StogareStatus.Normal
+                    stogare.GroupId == groupId && stogare.Parent == (int)StogareDefault.GROUP_ROOT_FOLDER && stogare.Status == StogareStatus.Normal
             )
             .OrderByDescending(stogare => stogare.Created)
             .ToList();

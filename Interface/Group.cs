@@ -9,7 +9,7 @@ public interface IGroup
     bool Remove(int userId, int groupId);
     public List<GroupMember> InviteMember(int userId, GroupDatatransformer.ModifyMember modifyMember);
     string RemoveMember(int userId, GroupDatatransformer.ModifyMember modifyMember);
-    List<MStogare.StogareWithCounter> ListStogare(int userId, int groupId, int stogareId);
+    List<MStogare.StogareWithCounter> ListStogare(int userId, int groupId);
     List<Stogare> ListDestination(int userId, int groupId, int stogareId);
     string AcceptInvite(int userId, int groupId);
 }

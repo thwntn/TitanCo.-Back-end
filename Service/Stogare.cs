@@ -50,7 +50,6 @@ public class StogareService(DatabaseContext databaseContext, IWSConnection conne
                     stogare.Type == StogareType.Folder
                     && stogare.Status == StogareStatus.Normal
                     && stogare.UserId == userId
-                    && stogare.GroupId == null
             )
             .ToList();
         return stogares;

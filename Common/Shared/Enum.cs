@@ -95,3 +95,8 @@ public enum StatusNote
     Archive = 1,
     Remove = 2,
 }
+
+public enum StogareDefault {
+    ROOT_FOLDER = -1,
+    GROUP_ROOT_FOLDER = -2
+}

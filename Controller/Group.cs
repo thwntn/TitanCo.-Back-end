@@ -42,10 +42,10 @@ public class Group(IGroup groupService, ISecurity securityService) : Controller
         return Ok(remove);
     }
 
-    [HttpGet(nameof(ListStogare) + "/{groupId}/{stogareId}")]
-    public IActionResult ListStogare([FromRoute] int groupId, [FromRoute] int stogareId)
+    [HttpGet(nameof(ListStogare) + "/{groupId}")]
+    public IActionResult ListStogare([FromRoute] int groupId)
     {
-        var stogares = _groupService.ListStogare(_securityService.ReadToken(Request).userId, groupId, stogareId);
+        var stogares = _groupService.ListStogare(_securityService.ReadToken(Request).userId, groupId);
         return Ok(stogares);
     }
 
