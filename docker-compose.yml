@@ -1,0 +1,14 @@
+services:
+  backend:
+    container_name: backend_shared
+    image: backend_shared
+    build:
+      dockerfile: Dockerfile
+      tags:
+        - thwntn/backend_shared:0.0.1.0101
+    volumes:
+      - ./.Cache:/root:rw
+      - ./.File:/App/File:rw
+    ports:
+      - 6501:6501
+    restart: always
