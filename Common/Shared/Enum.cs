@@ -96,7 +96,8 @@ public enum StatusNote
     Remove = 2,
 }
 
-public enum StogareDefault {
-    ROOT_FOLDER = -1,
-    GROUP_ROOT_FOLDER = -2
+public class StogareDefault
+{
+    public const string ROOT_FOLDER = "39a28547-f6c8-427d-a95d-164a2dd092bd";
+    public const string GROUP_ROOT_FOLDER = "0435f92b-0c2c-46ef-9cfb-af0c44932701";
 }

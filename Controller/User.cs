@@ -2,9 +2,9 @@ namespace ReferenceController;
 
 [ApiController]
 [Route(nameof(User))]
-public class User(IUser userService, ISecurity securityService, IAuth authService) : Controller
+public class User(IProfile userService, ISecurity securityService, IAuth authService) : Controller
 {
-    private readonly IUser _userService = userService;
+    private readonly IProfile _userService = userService;
     private readonly ISecurity _securityService = securityService;
     private readonly IAuth _authService = authService;
 
@@ -18,7 +18,7 @@ public class User(IUser userService, ISecurity securityService, IAuth authServic
 
     [Authorize]
     [HttpPut]
-    public IActionResult Update([FromBody] UserDataTransfromer.Update update)
+    public IActionResult Update([FromBody] ProfileDataTransfromer.Update update)
     {
         var user = _userService.Update(_securityService.ReadToken(Request).userId, update);
         return Ok(user);

@@ -7,13 +7,16 @@ public class StogareDataTransfomer
         [JsonRequired]
         public string name;
 
-        public int groupId;
+        public string groupId;
     }
 
     public class Move
     {
-        public int stogareId;
-        public int destinationId;
+        [JsonRequired]
+        public string stogareId;
+
+        [JsonRequired]
+        public string destinationId;
     }
 
     public class Rename
@@ -54,6 +57,6 @@ public class StogareDataTransfomer
         [JsonRequired]
         public int userId;
 
-        public int groupId;
+        public string groupId;
     }
 }

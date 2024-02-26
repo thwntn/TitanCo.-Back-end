@@ -7,18 +7,17 @@ public class NotificationService(DatabaseContext databaseContext, IWSConnection 
     private readonly DatabaseContext _databaseContext = databaseContext;
     private readonly IWSConnection _wsConnectionService = wsConnectionService;
 
-    public List<Notification> List(int userId)
+    public List<Notification> List(string profileId)
     {
         var notifications = _databaseContext
-            .Notification
-            .Include(notification => notification.User)
-            .Where(notification => notification.UserId == userId)
+            .Notification.Include(notification => notification.Profile)
+            .Where(notification => notification.ProfileId == profileId)
             .OrderBy(item => item.IsRead)
             .ToList();
 
         var result = notifications
             .Join(
-                _databaseContext.User,
+                _databaseContext.Profile,
                 notification => notification.FromId,
                 user => user.Id,
                 (notification, user) =>
@@ -31,7 +30,7 @@ public class NotificationService(DatabaseContext databaseContext, IWSConnection 
         return result;
     }
 
-    public Notification Add(int userId, int fromUser, NotificationType type, object jsonData)
+    public Notification Add(string profileId, string fromUser, NotificationType type, object jsonData)
     {
         Notification notification =
             new()
@@ -41,39 +40,37 @@ public class NotificationService(DatabaseContext databaseContext, IWSConnection 
                 FromId = fromUser,
                 IsRead = false,
                 Handle = false,
-                UserId = userId
+                ProfileId = profileId
             };
 
         _databaseContext.Add(notification);
         _databaseContext.SaveChanges();
 
-        RealtimeUpdate(userId);
+        RealtimeUpdate(profileId);
         return notification;
     }
 
-    public Notification Read(int userId, int notificationId)
+    public Notification Read(string profileId, string notificationId)
     {
         var notification =
-            _databaseContext
-                .Notification
-                .FirstOrDefault(notification => notification.Id == notificationId && notification.UserId == userId)
-            ?? throw new HttpException(400, MessageDefine.NOT_FOUND_NOTIFICATION);
+            _databaseContext.Notification.FirstOrDefault(notification =>
+                notification.Id == notificationId && notification.ProfileId == profileId
+            ) ?? throw new HttpException(400, MessageDefine.NOT_FOUND_NOTIFICATION);
 
         notification.IsRead = true;
         _databaseContext.Update(notification);
         _databaseContext.SaveChanges();
 
-        RealtimeUpdate(userId);
+        RealtimeUpdate(profileId);
         return notification;
     }
 
-    public Notification Handle(int userId, int notificationId)
+    public Notification Handle(string profileId, string notificationId)
     {
         var notification =
-            _databaseContext
-                .Notification
-                .FirstOrDefault(notification => notification.Id == notificationId && notification.UserId == userId)
-            ?? throw new HttpException(400, MessageDefine.NOT_FOUND_NOTIFICATION);
+            _databaseContext.Notification.FirstOrDefault(notification =>
+                notification.Id == notificationId && notification.ProfileId == profileId
+            ) ?? throw new HttpException(400, MessageDefine.NOT_FOUND_NOTIFICATION);
 
         notification.Handle = true;
         notification.IsRead = true;
@@ -81,14 +78,14 @@ public class NotificationService(DatabaseContext databaseContext, IWSConnection 
         _databaseContext.Notification.Update(notification);
         _databaseContext.SaveChanges();
 
-        RealtimeUpdate(userId);
+        RealtimeUpdate(profileId);
         return notification;
     }
 
-    private void RealtimeUpdate(int userId)
+    private void RealtimeUpdate(string profileId)
     {
         _wsConnectionService.InvokeWithUserId(
-            string.Concat(userId),
+            string.Concat(profileId),
             nameof(HubMethodName.UpdateNotification),
             string.Empty
         );

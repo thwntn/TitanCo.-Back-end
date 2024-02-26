@@ -10,9 +10,9 @@ public class Auth(DatabaseContext db, IAuth authService, ISecurity securityServi
     private readonly string _redirectUri = Environment.GetEnvironmentVariable(nameof(EnvironmentKey.GoogleRedirect));
 
     [HttpPost(nameof(Signin))]
-    public IActionResult Signin(AuthDataTransformer.Signin signin)
+    public async Task<IActionResult> Signin(AuthDataTransformer.Signin signin)
     {
-        var signinObject = _authService.Signin(signin);
+        var signinObject = await _authService.Signin(signin);
         _securityService.SetCookie(Response.Cookies, signinObject);
         return Ok(signinObject);
     }
@@ -32,9 +32,9 @@ public class Auth(DatabaseContext db, IAuth authService, ISecurity securityServi
     }
 
     [HttpPost(nameof(Signup))]
-    public IActionResult Signup(AuthDataTransformer.Signup signup)
+    public async Task<IActionResult> Signup(AuthDataTransformer.Signup signup)
     {
-        var data = _authService.Signup(signup);
+        var data = await _authService.Signup(signup);
         return Ok(data);
     }
 }

@@ -1,11 +1,5 @@
 namespace ReferenceFeature;
 
-public class Filter
-{
-    public static void Configure(WebApplicationBuilder builder) =>
-        builder.Services.AddControllers(options => options.Filters.Add<ExceptionFilter>());
-}
-
 public class HttpException : Exception
 {
     public HttpException(int statusCode, object value) => (StatusCode, Value) = (statusCode, value);

@@ -21,14 +21,21 @@ public class Group(IGroup groupService, ISecurity securityService) : Controller
         return Ok(groups);
     }
 
+    [HttpGet("{groupId}")]
+    public IActionResult Info([FromRoute] string groupId)
+    {
+        var info = _groupService.Info(_securityService.ReadToken(Request).userId, groupId);
+        return Ok(info);
+    }
+
     [HttpDelete("{groupId}")]
-    public IActionResult Remove(int groupId)
+    public IActionResult Remove(string groupId)
     {
         _groupService.Remove(_securityService.ReadToken(Request).userId, groupId);
         return Ok(null);
     }
 
-    [HttpPatch($"{nameof(AddMember)}")]
+    [HttpPost($"{nameof(AddMember)}")]
     public IActionResult AddMember(GroupDatatransformer.ModifyMember modifyMember)
     {
         var message = _groupService.InviteMember(_securityService.ReadToken(Request).userId, modifyMember);
@@ -43,7 +50,7 @@ public class Group(IGroup groupService, ISecurity securityService) : Controller
     }
 
     [HttpGet(nameof(ListStogare) + "/{groupId}")]
-    public IActionResult ListStogare([FromRoute] int groupId)
+    public IActionResult ListStogare([FromRoute] string groupId)
     {
         var stogares = _groupService.ListStogare(_securityService.ReadToken(Request).userId, groupId);
         return Ok(stogares);
@@ -57,7 +64,7 @@ public class Group(IGroup groupService, ISecurity securityService) : Controller
     }
 
     [HttpGet(nameof(ListDestination) + "/{groupId}/{stogareId}")]
-    public IActionResult ListDestination([FromRoute] int groupId, int stogareId)
+    public IActionResult ListDestination([FromRoute] string groupId, string stogareId)
     {
         var destinations = _groupService.ListDestination(
             _securityService.ReadToken(Request).userId,
@@ -69,7 +76,7 @@ public class Group(IGroup groupService, ISecurity securityService) : Controller
 
     [Authorize]
     [HttpPatch(nameof(AcceptInvite) + "/{groupId}")]
-    public IActionResult AcceptInvite([FromRoute] int groupId)
+    public IActionResult AcceptInvite([FromRoute] string groupId)
     {
         var accept = _groupService.AcceptInvite(_securityService.ReadToken(Request).userId, groupId);
         return Ok(accept);

@@ -4,18 +4,22 @@ public class AuthService(
     DatabaseContext databaseContext,
     ISecurity securityService,
     IMail mailService,
-    IGoogle googleService
+    IGoogle googleService,
+    UserManager<IdentityUser> userManager,
+    SignInManager<IdentityUser> signInManager
 ) : IAuth
 {
     private readonly DatabaseContext _databaseContext = databaseContext;
     private readonly ISecurity _securityService = securityService;
     private readonly IMail _mailService = mailService;
     private readonly IGoogle _googleService = googleService;
+    private readonly UserManager<IdentityUser> _userManager = userManager;
+    private readonly SignInManager<IdentityUser> _signInManager = signInManager;
 
-    public string Code(int userId, string code)
+    public string Code(string profileId, string code)
     {
         var user =
-            _databaseContext.User.FirstOrDefault(user => user.Id == userId)
+            _databaseContext.Profile.FirstOrDefault(user => user.Id == profileId)
             ?? throw new HttpException(400, MessageDefine.NOT_FOUND_USER);
         if (user.Code != code)
             return MessageDefine.CONFIRM_CODE_NOT_SUCCESS;
@@ -27,59 +31,63 @@ public class AuthService(
         return MessageDefine.CONFIRM_CODE_SUCCESS;
     }
 
-    public User Signup(AuthDataTransformer.Signup signup)
+    public async Task<Profile> Signup(AuthDataTransformer.Signup signup)
     {
-        bool existNameOrEmail = _databaseContext
-            .User
-            .Any(user => user.Name == signup.name || user.Email == signup.username);
-        if (existNameOrEmail)
-            throw new HttpException(400, MessageDefine.USERNAME_EMAIL_IS_EXIST);
-
-        string md5Password = Cryptography.Md5(signup.password);
         string code = Cryptography.RandomCode().ToString();
-        User user =
+        Profile profile =
             new()
             {
-                Password = md5Password,
+                Id = Cryptography.RandomGuid(),
                 Name = signup.name,
                 Avatar = string.Empty,
                 Email = signup.username,
                 Code = code,
                 Status = UserStatus.Valid,
-                CoverPicture = string.Empty
+                CoverPicture = string.Empty,
             };
 
-        _databaseContext.Add(user);
-        _databaseContext.SaveChanges();
+        // @Create Identity
+        IdentityUser identityUser = new() { Email = profile.Email, UserName = profile.Email, };
+        var create = await _userManager.CreateAsync(identityUser, signup.password);
+        if (create.Succeeded is false)
+            throw new HttpException(400, create);
+        profile.UserId = identityUser.Id;
 
-        _mailService.SendCode(user.Email, code);
-        return user;
+        // @Add Profile
+        _databaseContext.Add(profile);
+        _databaseContext.SaveChanges();
+        _mailService.SendCode(profile.Email, code);
+
+        return profile;
     }
 
-    public MLogin.Info Signin(AuthDataTransformer.Signin signin)
+    public async Task<MLogin.Info> Signin(AuthDataTransformer.Signin signin)
     {
-        string md5Password = Cryptography.Md5(signin.password);
-        var user =
-            _databaseContext.User.FirstOrDefault(user => user.Email == signin.username && user.Password == md5Password)
+        string hashPassword = Cryptography.Md5(signin.password);
+        var user = await _signInManager.PasswordSignInAsync(signin.username, signin.password, false, false);
+
+        if (user.Succeeded is false)
+            throw new HttpException(401, MessageDefine.NOT_FOUND_USER);
+
+        var profile =
+            _databaseContext.Profile.FirstOrDefault(profile => profile.Email == signin.username)
             ?? throw new HttpException(400, MessageDefine.NOT_FOUND_USER);
 
-        MLogin.Info info = NewtonsoftJson.Map<MLogin.Info>(user);
-        if (user.Status == UserStatus.Open)
-            info.token = _securityService.GenerateToken(user.Id.ToString());
+        MLogin.Info info = NewtonsoftJson.Map<MLogin.Info>(profile);
+        if (profile.Status == UserStatus.Open)
+            info.token = _securityService.GenerateToken(profile.Id.ToString());
         else
         {
-            string code = Cryptography.RandomCode().ToString();
-            user.Code = code;
+            string code = $"{Cryptography.RandomCode()}";
+            profile.Code = code;
             _databaseContext.Update(user);
             _databaseContext.SaveChanges();
-            _mailService.SendCode(user.Email, code);
+            _mailService.SendCode(profile.Email, code);
         }
-
-        info.Password = string.Empty;
         return info;
     }
 
-    public async Task<User> LoginGoogle(string authCode)
+    public async Task<Profile> LoginGoogle(string authCode)
     {
         MGoogle.AccessTokenResponse fromGg = await _googleService.GetAccessToken(authCode);
 
@@ -93,18 +101,17 @@ public class AuthService(
             return null;
 
         MGoogle.GetProfileResponse info = NewtonsoftJson.Map<MGoogle.GetProfileResponse>(getProfileResponse);
-        User user = _databaseContext.User.FirstOrDefault(user => user.Google.Sub == info.sub);
-        User handler = InsertInfo(info);
+        Profile profile = _databaseContext.Profile.FirstOrDefault(profile => profile.Google.Sub == info.sub);
+        Profile handler = InsertInfo(info);
         return handler;
     }
 
-    private User InsertInfo(MGoogle.GetProfileResponse info)
+    private Profile InsertInfo(MGoogle.GetProfileResponse info)
     {
-        User user =
+        Profile profile =
             new()
             {
                 Google = new() { Sub = info.sub, Picture = info.picture },
-                Password = string.Empty,
                 Type = UserType.Google,
                 Name = info.name,
                 Email = string.Empty,
@@ -112,8 +119,8 @@ public class AuthService(
                 Avatar = info.picture
             };
 
-        _databaseContext.Add(user);
+        _databaseContext.Add(profile);
         _databaseContext.SaveChanges();
-        return user;
+        return profile;
     }
 }

@@ -4,38 +4,38 @@ public class NoteService(DatabaseContext databaseContext) : INote
 {
     private readonly DatabaseContext _databaseContext = databaseContext;
 
-    public List<Note> List(int userId, int status)
+    public List<Note> List(string profileId, int status)
     {
         var notes = _databaseContext
-            .Note
-            .Where(note => note.UserId == userId && (int)note.Status == status)
+            .Note.Where(note => note.ProfileId == profileId && (int)note.Status == status)
             .OrderByDescending(note => note.Created)
             .ToList();
         return notes;
     }
 
-    public Note Get(int userId, int noteId)
+    public Note Get(string profileId, string noteId)
     {
         var note =
-            _databaseContext.Note.FirstOrDefault(note => note.UserId == userId && note.Id == noteId)
+            _databaseContext.Note.FirstOrDefault(note => note.ProfileId == profileId && note.Id == noteId)
             ?? throw new HttpException(400, MessageDefine.NOT_FOUND_NOTE);
         return note;
     }
 
-    public Note Create(int userId, NoteDatatransformer.Create create)
+    public Note Create(string profileId, NoteDatatransformer.Create create)
     {
         var note = NewtonsoftJson.Map<Note>(create);
+        note.Id = Cryptography.RandomGuid();
         note.Created = DateTime.Now;
-        note.UserId = userId;
+        note.ProfileId = profileId;
         _databaseContext.Add(note);
         _databaseContext.SaveChanges();
         return note;
     }
 
-    public Note UpdateContent(int userId, int noteId, NoteDatatransformer.UpdateContent updateContent)
+    public Note UpdateContent(string profileId, string noteId, NoteDatatransformer.UpdateContent updateContent)
     {
         var note =
-            _databaseContext.Note.FirstOrDefault(note => note.UserId == userId && note.Id == noteId)
+            _databaseContext.Note.FirstOrDefault(note => note.ProfileId == profileId && note.Id == noteId)
             ?? throw new HttpException(400, MessageDefine.NOT_FOUND_NOTE);
 
         note.Content = updateContent.content;
@@ -44,9 +44,9 @@ public class NoteService(DatabaseContext databaseContext) : INote
         return note;
     }
 
-    public Note Update(int userId, NoteDatatransformer.Update update)
+    public Note Update(string profileId, NoteDatatransformer.Update update)
     {
-        var exist = _databaseContext.Note.Any(note => note.UserId == userId && note.Id == update.id);
+        var exist = _databaseContext.Note.Any(note => note.ProfileId == profileId && note.Id == update.id);
         if (exist is false)
             throw new HttpException(400, MessageDefine.NOT_FOUND_NOTE);
 
@@ -56,10 +56,10 @@ public class NoteService(DatabaseContext databaseContext) : INote
         return note;
     }
 
-    public Note MoveToTrash(int userId, int noteId)
+    public Note MoveToTrash(string profileId, string noteId)
     {
         var note =
-            _databaseContext.Note.FirstOrDefault(note => note.Id == noteId && note.UserId == userId)
+            _databaseContext.Note.FirstOrDefault(note => note.Id == noteId && note.ProfileId == profileId)
             ?? throw new HttpException(400, MessageDefine.NOT_FOUND_NOTE);
 
         note.Status = StatusNote.Remove;
@@ -69,10 +69,10 @@ public class NoteService(DatabaseContext databaseContext) : INote
         return note;
     }
 
-    public Note Archive(int userId, int noteId)
+    public Note Archive(string profileId, string noteId)
     {
         var note =
-            _databaseContext.Note.FirstOrDefault(note => note.Id == noteId && note.UserId == userId)
+            _databaseContext.Note.FirstOrDefault(note => note.Id == noteId && note.ProfileId == profileId)
             ?? throw new HttpException(400, MessageDefine.NOT_FOUND_NOTE);
 
         note.Status = StatusNote.Archive;
@@ -82,10 +82,10 @@ public class NoteService(DatabaseContext databaseContext) : INote
         return note;
     }
 
-    public Note Restore(int userId, int noteId)
+    public Note Restore(string profileId, string noteId)
     {
         var note =
-            _databaseContext.Note.FirstOrDefault(note => note.Id == noteId && note.UserId == userId)
+            _databaseContext.Note.FirstOrDefault(note => note.Id == noteId && note.ProfileId == profileId)
             ?? throw new HttpException(400, MessageDefine.NOT_FOUND_NOTE);
 
         note.Status = StatusNote.Default;
@@ -95,10 +95,10 @@ public class NoteService(DatabaseContext databaseContext) : INote
         return note;
     }
 
-    public string Remove(int userId, int noteId)
+    public string Remove(string profileId, string noteId)
     {
         var note =
-            _databaseContext.Note.FirstOrDefault(note => note.Id == noteId && note.UserId == userId)
+            _databaseContext.Note.FirstOrDefault(note => note.Id == noteId && note.ProfileId == profileId)
             ?? throw new HttpException(400, MessageDefine.NOT_FOUND_NOTE);
 
         _databaseContext.Remove(note);

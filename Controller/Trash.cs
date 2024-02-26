@@ -25,7 +25,7 @@ public class Trash(ITrash trashService, ISecurity securityService) : Controller
 
     [Authorize]
     [HttpPatch(nameof(Restore) + "/{stogareId}")]
-    public IActionResult Restore([FromRoute] int stogareId)
+    public IActionResult Restore([FromRoute] string stogareId)
     {
         var stoagre = _trashService.Restore(_securityService.ReadToken(Request).userId, stogareId);
         return Ok(stoagre);
@@ -33,7 +33,7 @@ public class Trash(ITrash trashService, ISecurity securityService) : Controller
 
     [Authorize]
     [HttpDelete("/{stogareId}")]
-    public IActionResult Remove([FromRoute] int stogareId)
+    public IActionResult Remove([FromRoute] string stogareId)
     {
         var message = _trashService.Remove(_securityService.ReadToken(Request).userId, stogareId);
         return Ok(message);

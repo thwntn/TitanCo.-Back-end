@@ -14,7 +14,7 @@ public class AuthDataTransformer
     public class Code
     {
         [JsonRequired]
-        public int userId;
+        public string userId;
 
         [JsonRequired]
         public string code;

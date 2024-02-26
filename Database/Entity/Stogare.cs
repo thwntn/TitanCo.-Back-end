@@ -3,8 +3,7 @@ namespace ReferenceDatabase;
 public class Stogare
 {
     [Key]
-    [Required]
-    public int Id { get; set; }
+    public string Id { get; set; }
 
     [Required]
     public DateTime Created { get; set; }
@@ -16,7 +15,7 @@ public class Stogare
     public string MapName { get; set; }
 
     [Required]
-    public int Parent { get; set; }
+    public string Parent { get; set; }
 
     [Required]
     public string Url { get; set; }
@@ -33,12 +32,12 @@ public class Stogare
     public long Size { get; set; }
 
     [ForeignKey(nameof(GroupId))]
-    public int? GroupId { get; set; }
+    public string? GroupId { get; set; }
 
     public Group Group { get; set; }
 
-    [ForeignKey(nameof(UserId))]
-    public int UserId { get; set; }
+    [ForeignKey(nameof(ProfileId))]
+    public string ProfileId { get; set; }
 
-    public User User { get; set; }
+    public Profile Profile { get; set; }
 }

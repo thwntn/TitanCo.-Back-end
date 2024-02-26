@@ -2,7 +2,7 @@ namespace ReferenceInterface;
 
 public interface ISpend
 {
-    List<Spend> List(int userId, string dateTime);
-    Spend Create(int userId, SpendDataTransformer.Create create);
-    string Remove(int userId, int spendId);
+    List<Spend> List(string profileId, string dateTime);
+    Spend Create(string profileId, SpendDataTransformer.Create create);
+    string Remove(string profileId, string spendId);
 }

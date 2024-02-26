@@ -12,6 +12,8 @@ global using Microsoft.AspNetCore.DataProtection;
 global using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 global using Microsoft.AspNetCore.Diagnostics;
 global using Microsoft.AspNetCore.Http.Features;
+global using Microsoft.AspNetCore.Identity;
+global using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.Mvc.Filters;
 global using Microsoft.AspNetCore.SignalR;

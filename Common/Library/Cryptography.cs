@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+
 namespace ReferenceFeature;
 
 public class Cryptography
@@ -13,4 +15,19 @@ public class Cryptography
         Convert.ToBase64String(Encoding.UTF8.GetBytes(input)).Replace("+", "-").Replace("/", "_").Replace("=", "");
 
     public static long RandomCode() => _random.NextInt64(100000, 999999);
+
+    public static string Hash(string content)
+    {
+        byte[] salt = RandomNumberGenerator.GetBytes(128 / 8);
+        string hashed = Convert.ToBase64String(
+            KeyDerivation.Pbkdf2(
+                password: content!,
+                salt: salt,
+                prf: KeyDerivationPrf.HMACSHA256,
+                iterationCount: 100000,
+                numBytesRequested: 256 / 8
+            )
+        );
+        return hashed;
+    }
 }

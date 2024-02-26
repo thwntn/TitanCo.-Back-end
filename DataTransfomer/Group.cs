@@ -4,7 +4,7 @@ public class GroupDatatransformer
 {
     public class Move
     {
-        public int stogareId;
+        public string stogareId;
         public int destinationId;
     }
 
@@ -20,13 +20,13 @@ public class GroupDatatransformer
         public List<string> emails;
 
         [JsonRequired]
-        public int groupId;
+        public string groupId;
     }
 
     public class Rename
     {
         [JsonRequired]
-        public int groupId;
+        public string groupId;
 
         [JsonRequired]
         public string name;

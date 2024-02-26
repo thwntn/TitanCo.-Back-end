@@ -2,7 +2,7 @@ namespace ReferenceModel;
 
 public class JwtPayload
 {
-    public int userId;
+    public string userId;
     public string role;
     public int nbf;
     public int exp;

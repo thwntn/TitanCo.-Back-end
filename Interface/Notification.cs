@@ -2,8 +2,8 @@ namespace ReferenceService;
 
 public interface INotification
 {
-    List<Notification> List(int userId);
-    Notification Add(int userId, int fromUser, NotificationType type, object jsonData);
-    Notification Read(int userId, int notificationId);
-    Notification Handle(int userId, int notificationId);
+    List<Notification> List(string profileId);
+    Notification Add(string profileId, string fromUser, NotificationType type, object jsonData);
+    Notification Read(string profileId, string notificationId);
+    Notification Handle(string profileId, string notificationId);
 }

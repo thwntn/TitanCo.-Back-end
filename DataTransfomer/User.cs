@@ -1,6 +1,6 @@
 namespace ReferenceDatatransfomer;
 
-public class UserDataTransfromer
+public class ProfileDataTransfromer
 {
     public class Update
     {

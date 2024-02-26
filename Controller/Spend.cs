@@ -22,7 +22,7 @@ public class Spend(ISpend spendService, ISecurity securityService) : Controller
     }
 
     [HttpDelete("{spendId}")]
-    public IActionResult Remove([FromRoute] int spendId)
+    public IActionResult Remove([FromRoute] string spendId)
     {
         var message = _spendService.Remove(_securityService.ReadToken(Request).userId, spendId);
         return Ok(message);

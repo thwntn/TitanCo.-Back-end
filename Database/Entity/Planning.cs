@@ -3,8 +3,7 @@ namespace ReferenceDatabase;
 public class Planning
 {
     [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int Id { get; set; }
+    public string Id { get; set; }
 
     [Required]
     public DateTime Created { get; set; }
@@ -39,8 +38,8 @@ public class Planning
     [Required]
     public string Name { get; set; }
 
-    [ForeignKey(nameof(UserId))]
-    public int UserId { get; set; }
+    [ForeignKey(nameof(ProfileId))]
+    public string ProfileId { get; set; }
 
-    public User User { get; set; }
+    public Profile Profile { get; set; }
 }

@@ -7,31 +7,32 @@ public class PlanningService(DatabaseContext databaseContext, INotification noti
     private readonly INotification _notificationService = notificationService;
     private readonly IMail _mailService = mailService;
 
-    public List<Planning> List(int userId, string weekOfYear)
+    public List<Planning> List(string profileId, string weekOfYear)
     {
         var plannings = _databaseContext
-            .Planning
-            .Where(planning => planning.UserId == userId && planning.WeekOfYear == weekOfYear)
+            .Planning.Where(planning => planning.ProfileId == profileId && planning.WeekOfYear == weekOfYear)
             .ToList();
         return plannings;
     }
 
-    public Planning Create(int userId, PlanningDataTransformer.Create create)
+    public Planning Create(string profileId, PlanningDataTransformer.Create create)
     {
         Planning planning = NewtonsoftJson.Map<Planning>(create);
+        planning.Id = Cryptography.RandomGuid();
         planning.Created = DateTime.Now;
-        planning.UserId = userId;
+        planning.ProfileId = profileId;
 
         _databaseContext.Add(planning);
         _databaseContext.SaveChanges();
         return planning;
     }
 
-    public string Remove(int userId, int planningId)
+    public string Remove(string profileId, string planningId)
     {
         var planning =
-            _databaseContext.Planning.FirstOrDefault(planning => planning.Id == planningId && planning.UserId == userId)
-            ?? throw new HttpException(400, MessageDefine.NOT_FOUND_PLANNING);
+            _databaseContext.Planning.FirstOrDefault(planning =>
+                planning.Id == planningId && planning.ProfileId == profileId
+            ) ?? throw new HttpException(400, MessageDefine.NOT_FOUND_PLANNING);
 
         _databaseContext.Remove(planning);
         _databaseContext.SaveChanges();
@@ -43,10 +44,9 @@ public class PlanningService(DatabaseContext databaseContext, INotification noti
         string date = DateTime.Now.ToString("yyyy-MM-dd");
         string time = DateTime.Now.ToString("HH:mm");
         var plannings = _databaseContext
-            .Planning
-            .Include(planning => planning.User)
-            .Where(
-                planning => (planning.SetEmail == true || planning.SetNotification == true) && planning.DateTime == date
+            .Planning.Include(planning => planning.Profile)
+            .Where(planning =>
+                (planning.SetEmail == true || planning.SetNotification == true) && planning.DateTime == date
             )
             .ToList();
 
@@ -54,14 +54,14 @@ public class PlanningService(DatabaseContext databaseContext, INotification noti
         {
             if (planning.SetNotification && DateTime.Parse(planning.From) <= DateTime.Parse(time))
             {
-                _notificationService.Add(planning.UserId, planning.UserId, NotificationType.ExpirePlan, planning);
+                _notificationService.Add(planning.ProfileId, planning.ProfileId, NotificationType.ExpirePlan, planning);
                 planning.SetNotification = false;
                 return true;
             }
             if (planning.SetEmail && DateTime.Parse(planning.From) <= DateTime.Parse(time))
             {
                 planning.SetEmail = false;
-                _mailService.SendExpirePlanning(planning.User.Email, NewtonsoftJson.Serialize(planning));
+                _mailService.SendExpirePlanning(planning.Profile.Email, NewtonsoftJson.Serialize(planning));
                 return true;
             }
             return false;

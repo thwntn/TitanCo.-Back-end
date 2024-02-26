@@ -3,7 +3,7 @@ namespace ReferenceDatabase;
 public class Notification
 {
     [Key]
-    public int Id { get; set; }
+    public string Id { get; set; }
 
     [Required]
     public NotificationType Type { get; set; }
@@ -18,13 +18,13 @@ public class Notification
     public bool Handle { get; set; }
 
     [ForeignKey(nameof(FromId))]
-    public int FromId { get; set; }
+    public string FromId { get; set; }
 
     [NotMapped]
-    public User From { get; set; }
+    public Profile From { get; set; }
 
-    [ForeignKey(nameof(UserId))]
-    public int UserId { get; set; }
+    [ForeignKey(nameof(ProfileId))]
+    public string ProfileId { get; set; }
 
-    public User User { get; set; }
+    public Profile Profile { get; set; }
 }

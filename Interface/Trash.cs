@@ -2,8 +2,8 @@ namespace ReferenceService;
 
 public interface ITrash
 {
-    public List<Stogare> List(int userId);
-    public Stogare Add(int userId, int stogareId);
-    public Stogare Restore(int userId, int stogareId);
-    public string Remove(int userId, int stogareId);
+    public List<Stogare> List(string profileId);
+    public Stogare Add(string profileId, string stogareId);
+    public Stogare Restore(string profileId, string stogareId);
+    public string Remove(string profileId, string stogareId);
 }

@@ -17,7 +17,7 @@ public class Notification(INotification notificationService, ISecurity securityS
 
     [Authorize]
     [HttpPatch(nameof(Read) + "/{notificationId}")]
-    public IActionResult Read([FromRoute] int notificationId)
+    public IActionResult Read([FromRoute] string notificationId)
     {
         var read = _notificationService.Read(_securityService.ReadToken(Request).userId, notificationId);
         return Ok(read);
@@ -25,7 +25,7 @@ public class Notification(INotification notificationService, ISecurity securityS
 
     [Authorize]
     [HttpPatch(nameof(Handle) + "/{notificationId}")]
-    public IActionResult Handle([FromRoute] int notificationId)
+    public IActionResult Handle([FromRoute] string notificationId)
     {
         var handle = _notificationService.Handle(_securityService.ReadToken(Request).userId, notificationId);
         return Ok(handle);

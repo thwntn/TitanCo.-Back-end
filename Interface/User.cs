@@ -1,9 +1,10 @@
 namespace ReferenceInterface;
 
-public interface IUser
+public interface IProfile
 {
-    User Info(int userId);
-    User Update(int userId, UserDataTransfromer.Update update);
-    Task<MLogin.Info> ChangeAvatar(IFormFile file, int userId);
-    Task<MLogin.Info> ChangeCoverPicture(IFormFile file, int userId);
+    Profile Info(string profileId);
+    List<Profile> List();
+    Profile Update(string profileId, ProfileDataTransfromer.Update update);
+    Task<MLogin.Info> ChangeAvatar(IFormFile file, string profileId);
+    Task<MLogin.Info> ChangeCoverPicture(IFormFile file, string profileId);
 }

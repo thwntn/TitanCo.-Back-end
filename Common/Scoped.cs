@@ -11,7 +11,7 @@ public class Scoped
         // @Core
         services.AddScoped<IAuth, AuthService>();
         services.AddScoped<ISecurity, SecurityService>();
-        services.AddScoped<IUser, UserService>();
+        services.AddScoped<IProfile, ProfileService>();
         services.AddScoped<INotification, NotificationService>();
         services.AddScoped<IMail, MailService>();
         services.AddScoped<IGoogle, GoogleService>();

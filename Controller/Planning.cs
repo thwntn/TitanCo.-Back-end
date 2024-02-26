@@ -22,7 +22,7 @@ public class Planning(IPlanning planningService, ISecurity securityService) : Co
     }
 
     [HttpDelete("{planningId}")]
-    public IActionResult Remove([FromRoute] int planningId)
+    public IActionResult Remove([FromRoute] string planningId)
     {
         var message = _planningService.Remove(_securityService.ReadToken(Request).userId, planningId);
         return Ok(message);

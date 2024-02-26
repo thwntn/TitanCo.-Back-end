@@ -23,7 +23,7 @@ public class NoteDatatransformer
     public class Update
     {
         [JsonRequired]
-        public int id;
+        public string id;
 
         [JsonRequired]
         public DateTime created;

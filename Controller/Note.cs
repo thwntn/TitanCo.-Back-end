@@ -17,7 +17,7 @@ public class Note(ISecurity securityService, INote noteService) : Controller
 
     [Authorize]
     [HttpGet("{noteId}")]
-    public IActionResult Get([FromRoute] int noteId)
+    public IActionResult Get([FromRoute] string noteId)
     {
         var note = _noteService.Get(_securityService.ReadToken(Request).userId, noteId);
         return Ok(note);
@@ -33,7 +33,7 @@ public class Note(ISecurity securityService, INote noteService) : Controller
 
     [Authorize]
     [HttpPatch(nameof(MoveToTrash) + "/{noteId}")]
-    public IActionResult MoveToTrash([FromRoute] int noteId)
+    public IActionResult MoveToTrash([FromRoute] string noteId)
     {
         var message = _noteService.MoveToTrash(_securityService.ReadToken(Request).userId, noteId);
         return Ok(message);
@@ -41,7 +41,7 @@ public class Note(ISecurity securityService, INote noteService) : Controller
 
     [Authorize]
     [HttpPatch(nameof(Archive) + "/{noteId}")]
-    public IActionResult Archive([FromRoute] int noteId)
+    public IActionResult Archive([FromRoute] string noteId)
     {
         var message = _noteService.Archive(_securityService.ReadToken(Request).userId, noteId);
         return Ok(message);
@@ -49,7 +49,7 @@ public class Note(ISecurity securityService, INote noteService) : Controller
 
     [Authorize]
     [HttpPatch(nameof(Restore) + "/{noteId}")]
-    public IActionResult Restore([FromRoute] int noteId)
+    public IActionResult Restore([FromRoute] string noteId)
     {
         var message = _noteService.Restore(_securityService.ReadToken(Request).userId, noteId);
         return Ok(message);
@@ -57,7 +57,7 @@ public class Note(ISecurity securityService, INote noteService) : Controller
 
     [Authorize]
     [HttpDelete("{noteId}")]
-    public IActionResult Remove([FromRoute] int noteId)
+    public IActionResult Remove([FromRoute] string noteId)
     {
         var message = _noteService.Remove(_securityService.ReadToken(Request).userId, noteId);
         return Ok(message);
@@ -66,7 +66,7 @@ public class Note(ISecurity securityService, INote noteService) : Controller
     [Authorize]
     [HttpPatch(nameof(UpdateContent) + "/{noteId}")]
     public IActionResult UpdateContent(
-        [FromRoute] int noteId,
+        [FromRoute] string noteId,
         [FromBody] NoteDatatransformer.UpdateContent updateContent
     )
     {

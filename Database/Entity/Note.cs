@@ -3,8 +3,7 @@ namespace ReferenceDatabase;
 public class Note
 {
     [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int Id { get; set; }
+    public string Id { get; set; }
 
     [Required]
     public DateTime Created { get; set; }
@@ -21,8 +20,8 @@ public class Note
     [Required]
     public string Content { get; set; }
 
-    [ForeignKey(nameof(UserId))]
-    public int UserId { get; set; }
+    [ForeignKey(nameof(ProfileId))]
+    public string ProfileId { get; set; }
 
-    public User User { get; set; }
+    public Profile Profile { get; set; }
 }

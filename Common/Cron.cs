@@ -3,12 +3,6 @@ using Microsoft.Extensions.Options;
 
 namespace ReferenceFeature;
 
-public class Set
-{
-    public string Key = "";
-    public string Value = "";
-}
-
 public class CronJob
 {
     public static async void Configure(WebApplicationBuilder builder)

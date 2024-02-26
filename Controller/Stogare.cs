@@ -9,7 +9,7 @@ public class Stogare(IStogare stogareService, ISecurity securityService) : Contr
 
     [Authorize]
     [HttpGet("{stogareId}")]
-    public IActionResult List([FromRoute] int stogareId)
+    public IActionResult List([FromRoute] string stogareId)
     {
         var stogares = _stogareService.List(_securityService.ReadToken(Request).userId, stogareId);
         return Ok(stogares);
@@ -25,7 +25,10 @@ public class Stogare(IStogare stogareService, ISecurity securityService) : Contr
 
     [Authorize]
     [HttpPost("{stogareId}")]
-    public IActionResult Create([FromBody] StogareDataTransfomer.CreateFolder createFolder, [FromRoute] int stogareId)
+    public IActionResult Create(
+        [FromBody] StogareDataTransfomer.CreateFolder createFolder,
+        [FromRoute] string stogareId
+    )
     {
         var stogare = _stogareService.CreateFolder(_securityService.ReadToken(Request).userId, createFolder, stogareId);
         return Ok(stogare);
@@ -44,7 +47,7 @@ public class Stogare(IStogare stogareService, ISecurity securityService) : Contr
 
     [Authorize]
     [HttpPatch(nameof(Rename) + "/{stogareId}")]
-    public IActionResult Rename([FromBody] StogareDataTransfomer.Rename rename, [FromRoute] int stogareId)
+    public IActionResult Rename([FromBody] StogareDataTransfomer.Rename rename, [FromRoute] string stogareId)
     {
         var stogare = _stogareService.Rename(_securityService.ReadToken(Request).userId, stogareId, rename);
         return Ok(stogare);
@@ -52,21 +55,19 @@ public class Stogare(IStogare stogareService, ISecurity securityService) : Contr
 
     [Authorize]
     [HttpPost(nameof(UploadFile) + "/{stogareId}")]
-    public async Task<IActionResult> UploadFile([FromForm] IFormCollection form, [FromRoute] int stogareId)
+    public async Task<IActionResult> UploadFile([FromForm] IFormCollection form, [FromRoute] string stogareId)
     {
-        string groupId = form[nameof(groupId)];
         var stogares = await _stogareService.Upload(
             _securityService.ReadToken(Request).userId,
             form.Files[0],
-            stogareId,
-            groupId
+            stogareId
         );
         return Ok(stogares);
     }
 
     [Authorize]
     [HttpDelete("{stogareId}")]
-    public IActionResult Remove([FromRoute] int stogareId)
+    public IActionResult Remove([FromRoute] string stogareId)
     {
         var message = _stogareService.Remove(_securityService.ReadToken(Request).userId, stogareId);
         return Ok(message);
@@ -106,7 +107,7 @@ public class Stogare(IStogare stogareService, ISecurity securityService) : Contr
 
     [Authorize]
     [HttpGet(nameof(ListDestination) + "/{stogareId}")]
-    public IActionResult ListDestination([FromRoute] int stogareId)
+    public IActionResult ListDestination([FromRoute] string stogareId)
     {
         var destinations = _stogareService.ListDestination(_securityService.ReadToken(Request).userId, stogareId);
         return Ok(destinations);
@@ -114,7 +115,7 @@ public class Stogare(IStogare stogareService, ISecurity securityService) : Contr
 
     [Authorize]
     [HttpGet(nameof(Redirect) + "/{stogareId}")]
-    public IActionResult Redirect([FromRoute] int stogareId)
+    public IActionResult Redirect([FromRoute] string stogareId)
     {
         var redirect = _stogareService.Redirect(stogareId);
         return Ok(redirect);

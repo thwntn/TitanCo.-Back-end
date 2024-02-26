@@ -1,8 +1,8 @@
 namespace ReferenceDatabase;
 
-public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbContext(options)
+public class DatabaseContext(DbContextOptions<DatabaseContext> options) : IdentityDbContext(options)
 {
-    public DbSet<User> User { get; set; }
+    public DbSet<Profile> Profile { get; set; }
     public DbSet<Notification> Notification { get; set; }
     public DbSet<Google> Google { get; set; }
     public DbSet<Stogare> Stogare { get; set; }

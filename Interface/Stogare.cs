@@ -2,19 +2,19 @@ namespace ReferenceInterface;
 
 public interface IStogare
 {
-    Stogare CreateFolder(int userId, StogareDataTransfomer.CreateFolder createFolder, int stogareId);
-    Stogare Rename(int userId, int stogareId, StogareDataTransfomer.Rename rename);
-    Task<Stogare> Upload(int userId, IFormFile file, int stogareId, string groupId);
-    List<MStogare.StogareWithCounter> List(int userId, int stogareId);
+    Stogare CreateFolder(string profileId, StogareDataTransfomer.CreateFolder createFolder, string stogareId);
+    Stogare Rename(string profileId, string stogareId, StogareDataTransfomer.Rename rename);
+    Task<Stogare> Upload(string profileId, IFormFile file, string stogareId);
+    List<MStogare.StogareWithCounter> List(string profileId, string stogareId);
     List<MStogare.StogareWithCounter> FolderCounter(List<Stogare> stogares);
-    List<Stogare> Recent(int userId);
-    Stogare Update(int userId, Stogare stogare);
-    string Remove(int userId, int stogareId);
-    MHome.Info Home(int userId);
-    List<Stogare> Search(int userId, string content);
-    Stogare Move(int userId, StogareDataTransfomer.Move move);
-    List<int> RecursiveChildren(List<int> stogares);
-    List<MStogare.StogareWithLevel> Redirect(int stogareId);
-    List<Stogare> ListDestination(int userId, int stogareId);
-    List<Stogare> Folders(int userId);
+    List<Stogare> Recent(string profileId);
+    Stogare Update(string profileId, Stogare stogare);
+    string Remove(string profileId, string stogareId);
+    MHome.Info Home(string profileId);
+    List<Stogare> Search(string profileId, string content);
+    Stogare Move(string profileId, StogareDataTransfomer.Move move);
+    List<string> RecursiveChildren(List<string> stogares);
+    List<MStogare.StogareWithLevel> Redirect(string stogareId);
+    List<Stogare> ListDestination(string profileId, string stogareId);
+    List<Stogare> Folders(string profileId);
 }
