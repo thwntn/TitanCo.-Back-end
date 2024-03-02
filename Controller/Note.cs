@@ -2,16 +2,16 @@ namespace ReferenceController;
 
 [ApiController]
 [Route(nameof(Note))]
-public class Note(ISecurity securityService, INote noteService) : Controller
+public class Note(IJwt jwtService, INote noteService) : Controller
 {
-    private readonly ISecurity _securityService = securityService;
+    private readonly IJwt _jwtService = jwtService;
     private readonly INote _noteService = noteService;
 
     [Authorize]
     [HttpGet(nameof(List) + "/{status}")]
     public IActionResult List(int status)
     {
-        var notes = _noteService.List(_securityService.ReadToken(Request).userId, status);
+        var notes = _noteService.List(_jwtService.ReadToken(Request).userId, status);
         return Ok(notes);
     }
 
@@ -19,7 +19,7 @@ public class Note(ISecurity securityService, INote noteService) : Controller
     [HttpGet("{noteId}")]
     public IActionResult Get([FromRoute] string noteId)
     {
-        var note = _noteService.Get(_securityService.ReadToken(Request).userId, noteId);
+        var note = _noteService.Get(_jwtService.ReadToken(Request).userId, noteId);
         return Ok(note);
     }
 
@@ -27,7 +27,7 @@ public class Note(ISecurity securityService, INote noteService) : Controller
     [HttpPost]
     public IActionResult Create([FromBody] NoteDatatransformer.Create create)
     {
-        var note = _noteService.Create(_securityService.ReadToken(Request).userId, create);
+        var note = _noteService.Create(_jwtService.ReadToken(Request).userId, create);
         return Ok(note);
     }
 
@@ -35,7 +35,7 @@ public class Note(ISecurity securityService, INote noteService) : Controller
     [HttpPatch(nameof(MoveToTrash) + "/{noteId}")]
     public IActionResult MoveToTrash([FromRoute] string noteId)
     {
-        var message = _noteService.MoveToTrash(_securityService.ReadToken(Request).userId, noteId);
+        var message = _noteService.MoveToTrash(_jwtService.ReadToken(Request).userId, noteId);
         return Ok(message);
     }
 
@@ -43,7 +43,7 @@ public class Note(ISecurity securityService, INote noteService) : Controller
     [HttpPatch(nameof(Archive) + "/{noteId}")]
     public IActionResult Archive([FromRoute] string noteId)
     {
-        var message = _noteService.Archive(_securityService.ReadToken(Request).userId, noteId);
+        var message = _noteService.Archive(_jwtService.ReadToken(Request).userId, noteId);
         return Ok(message);
     }
 
@@ -51,7 +51,7 @@ public class Note(ISecurity securityService, INote noteService) : Controller
     [HttpPatch(nameof(Restore) + "/{noteId}")]
     public IActionResult Restore([FromRoute] string noteId)
     {
-        var message = _noteService.Restore(_securityService.ReadToken(Request).userId, noteId);
+        var message = _noteService.Restore(_jwtService.ReadToken(Request).userId, noteId);
         return Ok(message);
     }
 
@@ -59,7 +59,7 @@ public class Note(ISecurity securityService, INote noteService) : Controller
     [HttpDelete("{noteId}")]
     public IActionResult Remove([FromRoute] string noteId)
     {
-        var message = _noteService.Remove(_securityService.ReadToken(Request).userId, noteId);
+        var message = _noteService.Remove(_jwtService.ReadToken(Request).userId, noteId);
         return Ok(message);
     }
 
@@ -70,7 +70,7 @@ public class Note(ISecurity securityService, INote noteService) : Controller
         [FromBody] NoteDatatransformer.UpdateContent updateContent
     )
     {
-        var note = _noteService.UpdateContent(_securityService.ReadToken(Request).userId, noteId, updateContent);
+        var note = _noteService.UpdateContent(_jwtService.ReadToken(Request).userId, noteId, updateContent);
         return Ok(note);
     }
 
@@ -78,7 +78,7 @@ public class Note(ISecurity securityService, INote noteService) : Controller
     [HttpPut]
     public IActionResult Update([FromBody] NoteDatatransformer.Update update)
     {
-        var note = _noteService.Update(_securityService.ReadToken(Request).userId, update);
+        var note = _noteService.Update(_jwtService.ReadToken(Request).userId, update);
         return Ok(note);
     }
 }

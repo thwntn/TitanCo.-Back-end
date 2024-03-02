@@ -6,6 +6,8 @@ public class MessageDefine
     public const string NOT_FOUND_GROUP = "Not found group!";
     public const string NOT_FOUND_NOTEPROCESS = "Not found note process!";
     public const string NOT_FOUND_NOTE = "Not found note!";
+    public const string NOT_FOUND_PRODUCT = "Not found product!";
+    public const string NOT_FOUND_INVOICE = "Not found invoice!";
     public const string NOT_ATTACH = "Not found attach!";
     public const string NOT_COMMENT = "Not found comment!";
     public const string NOT_FOUND_STOGARE = "Not found stogare!";

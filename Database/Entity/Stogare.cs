@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace ReferenceDatabase;
 
 public class Stogare
@@ -31,8 +33,9 @@ public class Stogare
     [Required]
     public long Size { get; set; }
 
+    [AllowNull]
     [ForeignKey(nameof(GroupId))]
-    public string? GroupId { get; set; }
+    public string GroupId { get; set; }
 
     public Group Group { get; set; }
 

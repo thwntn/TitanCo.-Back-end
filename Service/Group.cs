@@ -26,6 +26,19 @@ public class GroupService(
         return group;
     }
 
+    public async Task<Group> ChangeImage(string profileId, string groupId, IFormFile file)
+    {
+        var save = await Reader.Save(file, string.Empty);
+        string url = Reader.CreateStogare(save.GetFileName());
+
+        var group = Info(profileId, groupId) ?? throw new HttpException(400, MessageDefine.NOT_FOUND_GROUP);
+        group.Image = url;
+
+        _databaseContext.Update(group);
+        _databaseContext.SaveChanges();
+        return group;
+    }
+
     public Group Create(string profileId, string groupName)
     {
         Group group =
@@ -33,6 +46,7 @@ public class GroupService(
             {
                 Id = Cryptography.RandomGuid(),
                 ProfileId = profileId,
+                Image = Reader.CreateStogare(Constant.GROUP_IMAGE),
                 Name = groupName,
             };
         _databaseContext.Add(group);
@@ -158,7 +172,7 @@ public class GroupService(
             modifyMember.emails.Any(item => member.Profile.Email == item) && member.GroupId == modifyMember.groupId
         );
 
-        _databaseContext.Remove(members);
+        _databaseContext.RemoveRange(members);
         _databaseContext.SaveChanges();
 
         RealtimeUpdate();
@@ -214,6 +228,17 @@ public class GroupService(
         _databaseContext.SaveChanges();
         RealtimeUpdate();
         return MessageDefine.REQUEST_SUCCESS;
+    }
+
+    public List<Group> ListRequest(string profileId)
+    {
+        var groups = _databaseContext
+            .GroupMember.Include(groupMember => groupMember.Group)
+            .ThenInclude(group => group.Profile)
+            .Where(groupMember => groupMember.ProfileId == profileId && groupMember.Status == GroupInviteStatus.Invited)
+            .Select(item => item.Group)
+            .ToList();
+        return groups;
     }
 
     private void RealtimeUpdate() => _connectionService.InvokeAllUser(nameof(HubMethodName.UpdateGroup), null);

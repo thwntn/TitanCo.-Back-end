@@ -1,6 +1,6 @@
 namespace ReferenceInterface;
 
-public interface ISecurity
+public interface IJwt
 {
     string GenerateToken(string userId);
     void SetCookie(IResponseCookies responseCookies, object data);

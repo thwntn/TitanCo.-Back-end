@@ -364,24 +364,24 @@ public class StogareService(DatabaseContext databaseContext, IWSConnection conne
     private bool ValidPermission(string profileId, string stogareId)
     {
         return true;
-        if (stogareId is null)
-            return true;
+        // if (stogareId is null)
+        //     return true;
 
-        var stogare =
-            _databaseContext.Stogare.FirstOrDefault(stogare =>
-                stogare.Id == stogareId && stogare.ProfileId == profileId
-            ) ?? throw new HttpException(400, MessageDefine.NOT_FOUND_STOGARE);
+        // var stogare =
+        //     _databaseContext.Stogare.FirstOrDefault(stogare =>
+        //         stogare.Id == stogareId && stogare.ProfileId == profileId
+        //     ) ?? throw new HttpException(400, MessageDefine.NOT_FOUND_STOGARE);
 
-        if (stogare.GroupId is not null)
-        {
-            var group =
-                _databaseContext.Group.FirstOrDefault(group => group.Id == stogare.GroupId)
-                ?? throw new HttpException(400, MessageDefine.NOT_FOUND_GROUP);
+        // if (stogare.GroupId is not null)
+        // {
+        //     var group =
+        //         _databaseContext.Group.FirstOrDefault(group => group.Id == stogare.GroupId)
+        //         ?? throw new HttpException(400, MessageDefine.NOT_FOUND_GROUP);
 
-            bool inGroup = group.Members.Any(member => member.ProfileId == profileId) || group.ProfileId == profileId;
-            return inGroup;
-        }
-        return false;
+        //     bool inGroup = group.Members.Any(member => member.ProfileId == profileId) || group.ProfileId == profileId;
+        //     return inGroup;
+        // }
+        // return false;
     }
 
     private void RealtimeUpdate() => _connectionService.InvokeAllUser(nameof(HubMethodName.UpdateListFile), null);

@@ -66,7 +66,7 @@ public class Reader
 
     public static string CreateStogare(string path)
     {
-        if (_stogareHost is not null)
+        if (_stogareHost is null)
             Logger.Warning(nameof(_stogareHost));
 
         return $"{_stogareHost}/Media/{_prefix}/{path}";

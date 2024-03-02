@@ -2,16 +2,16 @@ namespace ReferenceController;
 
 [ApiController]
 [Route(nameof(Stogare))]
-public class Stogare(IStogare stogareService, ISecurity securityService) : Controller
+public class Stogare(IStogare stogareService, IJwt jwtService) : Controller
 {
     private readonly IStogare _stogareService = stogareService;
-    private readonly ISecurity _securityService = securityService;
+    private readonly IJwt _jwtService = jwtService;
 
     [Authorize]
     [HttpGet("{stogareId}")]
     public IActionResult List([FromRoute] string stogareId)
     {
-        var stogares = _stogareService.List(_securityService.ReadToken(Request).userId, stogareId);
+        var stogares = _stogareService.List(_jwtService.ReadToken(Request).userId, stogareId);
         return Ok(stogares);
     }
 
@@ -19,7 +19,7 @@ public class Stogare(IStogare stogareService, ISecurity securityService) : Contr
     [HttpGet(nameof(Folders))]
     public IActionResult Folders()
     {
-        var stogares = _stogareService.Folders(_securityService.ReadToken(Request).userId);
+        var stogares = _stogareService.Folders(_jwtService.ReadToken(Request).userId);
         return Ok(stogares);
     }
 
@@ -30,7 +30,7 @@ public class Stogare(IStogare stogareService, ISecurity securityService) : Contr
         [FromRoute] string stogareId
     )
     {
-        var stogare = _stogareService.CreateFolder(_securityService.ReadToken(Request).userId, createFolder, stogareId);
+        var stogare = _stogareService.CreateFolder(_jwtService.ReadToken(Request).userId, createFolder, stogareId);
         return Ok(stogare);
     }
 
@@ -39,7 +39,7 @@ public class Stogare(IStogare stogareService, ISecurity securityService) : Contr
     public IActionResult Update([FromBody] StogareDataTransfomer.Stogare stogare)
     {
         var result = _stogareService.Update(
-            _securityService.ReadToken(Request).userId,
+            _jwtService.ReadToken(Request).userId,
             NewtonsoftJson.Map<ReferenceDatabase.Stogare>(stogare)
         );
         return Ok(result);
@@ -49,7 +49,7 @@ public class Stogare(IStogare stogareService, ISecurity securityService) : Contr
     [HttpPatch(nameof(Rename) + "/{stogareId}")]
     public IActionResult Rename([FromBody] StogareDataTransfomer.Rename rename, [FromRoute] string stogareId)
     {
-        var stogare = _stogareService.Rename(_securityService.ReadToken(Request).userId, stogareId, rename);
+        var stogare = _stogareService.Rename(_jwtService.ReadToken(Request).userId, stogareId, rename);
         return Ok(stogare);
     }
 
@@ -57,11 +57,7 @@ public class Stogare(IStogare stogareService, ISecurity securityService) : Contr
     [HttpPost(nameof(UploadFile) + "/{stogareId}")]
     public async Task<IActionResult> UploadFile([FromForm] IFormCollection form, [FromRoute] string stogareId)
     {
-        var stogares = await _stogareService.Upload(
-            _securityService.ReadToken(Request).userId,
-            form.Files[0],
-            stogareId
-        );
+        var stogares = await _stogareService.Upload(_jwtService.ReadToken(Request).userId, form.Files[0], stogareId);
         return Ok(stogares);
     }
 
@@ -69,7 +65,7 @@ public class Stogare(IStogare stogareService, ISecurity securityService) : Contr
     [HttpDelete("{stogareId}")]
     public IActionResult Remove([FromRoute] string stogareId)
     {
-        var message = _stogareService.Remove(_securityService.ReadToken(Request).userId, stogareId);
+        var message = _stogareService.Remove(_jwtService.ReadToken(Request).userId, stogareId);
         return Ok(message);
     }
 
@@ -77,7 +73,7 @@ public class Stogare(IStogare stogareService, ISecurity securityService) : Contr
     [HttpGet(nameof(Home))]
     public IActionResult Home()
     {
-        var home = _stogareService.Home(_securityService.ReadToken(Request).userId);
+        var home = _stogareService.Home(_jwtService.ReadToken(Request).userId);
         return Ok(home);
     }
 
@@ -85,7 +81,7 @@ public class Stogare(IStogare stogareService, ISecurity securityService) : Contr
     [HttpGet(nameof(Recent))]
     public IActionResult Recent()
     {
-        var recent = _stogareService.Recent(_securityService.ReadToken(Request).userId);
+        var recent = _stogareService.Recent(_jwtService.ReadToken(Request).userId);
         return Ok(recent);
     }
 
@@ -93,7 +89,7 @@ public class Stogare(IStogare stogareService, ISecurity securityService) : Contr
     [HttpGet(nameof(Search))]
     public IActionResult Search([FromQuery] string content)
     {
-        var search = _stogareService.Search(_securityService.ReadToken(Request).userId, content);
+        var search = _stogareService.Search(_jwtService.ReadToken(Request).userId, content);
         return Ok(search);
     }
 
@@ -101,7 +97,7 @@ public class Stogare(IStogare stogareService, ISecurity securityService) : Contr
     [HttpPatch(nameof(Move))]
     public IActionResult Move([FromBody] StogareDataTransfomer.Move move)
     {
-        var stogare = _stogareService.Move(_securityService.ReadToken(Request).userId, move);
+        var stogare = _stogareService.Move(_jwtService.ReadToken(Request).userId, move);
         return Ok(stogare);
     }
 
@@ -109,13 +105,13 @@ public class Stogare(IStogare stogareService, ISecurity securityService) : Contr
     [HttpGet(nameof(ListDestination) + "/{stogareId}")]
     public IActionResult ListDestination([FromRoute] string stogareId)
     {
-        var destinations = _stogareService.ListDestination(_securityService.ReadToken(Request).userId, stogareId);
+        var destinations = _stogareService.ListDestination(_jwtService.ReadToken(Request).userId, stogareId);
         return Ok(destinations);
     }
 
     [Authorize]
-    [HttpGet(nameof(Redirect) + "/{stogareId}")]
-    public IActionResult Redirect([FromRoute] string stogareId)
+    [HttpGet(nameof(Capture) + "/{stogareId}")]
+    public IActionResult Capture([FromRoute] string stogareId)
     {
         var redirect = _stogareService.Redirect(stogareId);
         return Ok(redirect);

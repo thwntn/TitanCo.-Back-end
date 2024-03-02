@@ -1,9 +1,9 @@
 namespace ReferenceService;
 
-public class ProfileService(DatabaseContext databaseContext, ISecurity securityService) : IProfile
+public class ProfileService(DatabaseContext databaseContext, IJwt jwtService) : IProfile
 {
     private readonly DatabaseContext _databaseContext = databaseContext;
-    private readonly ISecurity _securityService = securityService;
+    private readonly IJwt _jwtService = jwtService;
 
     public List<Profile> List()
     {
@@ -44,7 +44,7 @@ public class ProfileService(DatabaseContext databaseContext, ISecurity securityS
         profile.Avatar = Reader.CreateStogare(save.GetPath());
 
         MLogin.Info info = NewtonsoftJson.Map<MLogin.Info>(profile);
-        info.token = _securityService.GenerateToken(profile.Id.ToString());
+        info.token = _jwtService.GenerateToken(profile.Id.ToString());
 
         _databaseContext.Update(profile);
         _databaseContext.SaveChanges();
@@ -62,7 +62,7 @@ public class ProfileService(DatabaseContext databaseContext, ISecurity securityS
         profile.CoverPicture = Reader.CreateStogare(save.GetPath());
 
         MLogin.Info info = NewtonsoftJson.Map<MLogin.Info>(profile);
-        info.token = _securityService.GenerateToken(profile.Id.ToString());
+        info.token = _jwtService.GenerateToken(profile.Id.ToString());
 
         _databaseContext.Update(profile);
         _databaseContext.SaveChanges();

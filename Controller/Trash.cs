@@ -2,16 +2,16 @@ namespace ReferenceController;
 
 [ApiController]
 [Route(nameof(Trash))]
-public class Trash(ITrash trashService, ISecurity securityService) : Controller
+public class Trash(ITrash trashService, IJwt jwtService) : Controller
 {
     private readonly ITrash _trashService = trashService;
-    private readonly ISecurity _securityService = securityService;
+    private readonly IJwt _jwtService = jwtService;
 
     [HttpGet]
     [Authorize]
     public IActionResult List()
     {
-        var list = _trashService.List(_securityService.ReadToken(Request).userId);
+        var list = _trashService.List(_jwtService.ReadToken(Request).userId);
         return Ok(list);
     }
 
@@ -19,7 +19,7 @@ public class Trash(ITrash trashService, ISecurity securityService) : Controller
     [Authorize]
     public IActionResult Add([FromBody] TrashDatatransfomer.Add add)
     {
-        var stogare = _trashService.Add(_securityService.ReadToken(Request).userId, add.stogareId);
+        var stogare = _trashService.Add(_jwtService.ReadToken(Request).userId, add.stogareId);
         return Ok(stogare);
     }
 
@@ -27,7 +27,7 @@ public class Trash(ITrash trashService, ISecurity securityService) : Controller
     [HttpPatch(nameof(Restore) + "/{stogareId}")]
     public IActionResult Restore([FromRoute] string stogareId)
     {
-        var stoagre = _trashService.Restore(_securityService.ReadToken(Request).userId, stogareId);
+        var stoagre = _trashService.Restore(_jwtService.ReadToken(Request).userId, stogareId);
         return Ok(stoagre);
     }
 
@@ -35,7 +35,7 @@ public class Trash(ITrash trashService, ISecurity securityService) : Controller
     [HttpDelete("/{stogareId}")]
     public IActionResult Remove([FromRoute] string stogareId)
     {
-        var message = _trashService.Remove(_securityService.ReadToken(Request).userId, stogareId);
+        var message = _trashService.Remove(_jwtService.ReadToken(Request).userId, stogareId);
         return Ok(message);
     }
 }

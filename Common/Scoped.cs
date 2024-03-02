@@ -10,7 +10,7 @@ public class Scoped
 
         // @Core
         services.AddScoped<IAuth, AuthService>();
-        services.AddScoped<ISecurity, SecurityService>();
+        services.AddScoped<IJwt, jwtService>();
         services.AddScoped<IProfile, ProfileService>();
         services.AddScoped<INotification, NotificationService>();
         services.AddScoped<IMail, MailService>();
@@ -25,5 +25,7 @@ public class Scoped
         services.AddScoped<IPlanning, PlanningService>();
         services.AddScoped<ISpend, SpendService>();
         services.AddScoped<INote, NoteService>();
+        services.AddScoped<IInvoice, InvoiceService>();
+        services.AddScoped<IProduct, ProductService>();
     }
 }

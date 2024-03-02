@@ -2,17 +2,17 @@ namespace ReferenceController;
 
 [ApiController]
 [Route(nameof(User))]
-public class User(IProfile userService, ISecurity securityService, IAuth authService) : Controller
+public class User(IProfile userService, IJwt jwtService, IAuth authService) : Controller
 {
     private readonly IProfile _userService = userService;
-    private readonly ISecurity _securityService = securityService;
+    private readonly IJwt _jwtService = jwtService;
     private readonly IAuth _authService = authService;
 
     [Authorize]
     [HttpGet]
     public IActionResult Get()
     {
-        var info = _userService.Info(_securityService.ReadToken(Request).userId);
+        var info = _userService.Info(_jwtService.ReadToken(Request).userId);
         return Ok(info);
     }
 
@@ -20,7 +20,7 @@ public class User(IProfile userService, ISecurity securityService, IAuth authSer
     [HttpPut]
     public IActionResult Update([FromBody] ProfileDataTransfromer.Update update)
     {
-        var user = _userService.Update(_securityService.ReadToken(Request).userId, update);
+        var user = _userService.Update(_jwtService.ReadToken(Request).userId, update);
         return Ok(user);
     }
 
@@ -28,7 +28,7 @@ public class User(IProfile userService, ISecurity securityService, IAuth authSer
     [HttpPost(nameof(ChangeAvatar))]
     public async Task<IActionResult> ChangeAvatar([FromForm] IFormCollection form)
     {
-        var user = await _userService.ChangeAvatar(form.Files[0], _securityService.ReadToken(Request).userId);
+        var user = await _userService.ChangeAvatar(form.Files[0], _jwtService.ReadToken(Request).userId);
         return Ok(user);
     }
 
@@ -36,7 +36,7 @@ public class User(IProfile userService, ISecurity securityService, IAuth authSer
     [HttpPost(nameof(ChangeCoverPicture))]
     public async Task<IActionResult> ChangeCoverPicture([FromForm] IFormCollection form)
     {
-        var user = await _userService.ChangeCoverPicture(form.Files[0], _securityService.ReadToken(Request).userId);
+        var user = await _userService.ChangeCoverPicture(form.Files[0], _jwtService.ReadToken(Request).userId);
         return Ok(user);
     }
 }

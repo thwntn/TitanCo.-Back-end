@@ -8,6 +8,9 @@ public class Group
     [Required]
     public string Name { get; set; }
 
+    [Required]
+    public string Image { get; set; }
+
     public ICollection<Stogare> DataGroups { get; set; }
 
     public ICollection<GroupMember> Members { get; set; }

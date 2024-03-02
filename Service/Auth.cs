@@ -2,7 +2,7 @@ namespace ReferenceService;
 
 public class AuthService(
     DatabaseContext databaseContext,
-    ISecurity securityService,
+    IJwt jwtService,
     IMail mailService,
     IGoogle googleService,
     UserManager<IdentityUser> userManager,
@@ -10,7 +10,7 @@ public class AuthService(
 ) : IAuth
 {
     private readonly DatabaseContext _databaseContext = databaseContext;
-    private readonly ISecurity _securityService = securityService;
+    private readonly IJwt _jwtService = jwtService;
     private readonly IMail _mailService = mailService;
     private readonly IGoogle _googleService = googleService;
     private readonly UserManager<IdentityUser> _userManager = userManager;
@@ -75,7 +75,7 @@ public class AuthService(
 
         MLogin.Info info = NewtonsoftJson.Map<MLogin.Info>(profile);
         if (profile.Status == UserStatus.Open)
-            info.token = _securityService.GenerateToken(profile.Id.ToString());
+            info.token = _jwtService.GenerateToken(profile.Id.ToString());
         else
         {
             string code = $"{Cryptography.RandomCode()}";

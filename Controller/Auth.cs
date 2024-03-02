@@ -2,18 +2,18 @@ namespace ReferenceController;
 
 [ApiController]
 [Route(nameof(Auth))]
-public class Auth(DatabaseContext db, IAuth authService, ISecurity securityService) : Controller
+public class Auth(DatabaseContext db, IAuth authService, IJwt jwtService) : Controller
 {
     private readonly DatabaseContext _db = db;
     private readonly IAuth _authService = authService;
-    private readonly ISecurity _securityService = securityService;
+    private readonly IJwt _jwtService = jwtService;
     private readonly string _redirectUri = Environment.GetEnvironmentVariable(nameof(EnvironmentKey.GoogleRedirect));
 
     [HttpPost(nameof(Signin))]
     public async Task<IActionResult> Signin(AuthDataTransformer.Signin signin)
     {
         var signinObject = await _authService.Signin(signin);
-        _securityService.SetCookie(Response.Cookies, signinObject);
+        _jwtService.SetCookie(Response.Cookies, signinObject);
         return Ok(signinObject);
     }
 

@@ -2,14 +2,14 @@ namespace ReferenceController;
 
 [ApiController]
 [Route(nameof(Token))]
-public class Token(ISecurity securityService) : Controller
+public class Token(IJwt jwtService) : Controller
 {
-    private readonly ISecurity _securityService = securityService;
+    private readonly IJwt _jwtService = jwtService;
 
     [HttpGet(nameof(Generate))]
     public IActionResult Generate()
     {
-        string jwt = _securityService.GenerateToken("1");
+        string jwt = _jwtService.GenerateToken("1");
         return Ok(jwt);
     }
 
@@ -17,7 +17,7 @@ public class Token(ISecurity securityService) : Controller
     [HttpGet(nameof(Read))]
     public IActionResult Read([FromHeader] string authorization, [FromQuery] string jwt)
     {
-        ReferenceModel.JwtPayload claimJwt = _securityService.ReadToken(Request);
+        ReferenceModel.JwtPayload claimJwt = _jwtService.ReadToken(Request);
         return Ok(claimJwt);
     }
 }

@@ -1,6 +1,6 @@
 namespace ReferenceService;
 
-public class SecurityService : ISecurity
+public class jwtService : IJwt
 {
     private readonly DateTime _timeoutSession = DateTime.UtcNow.AddDays(14);
 

@@ -41,6 +41,6 @@ public class NoteDatatransformer
         public string content;
 
         [JsonRequired]
-        public int userId;
+        public string profileId;
     }
 }
