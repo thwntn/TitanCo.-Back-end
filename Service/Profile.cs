@@ -41,7 +41,7 @@ public class ProfileService(DatabaseContext databaseContext, IJwt jwtService) : 
             ?? throw new HttpException(400, MessageDefine.NOT_FOUND_USER);
 
         MStream.Save save = await Reader.Save(file, string.Empty);
-        profile.Avatar = Reader.CreateStogare(save.GetPath());
+        profile.Avatar = Reader.CreateURL(save.GetPath());
 
         MLogin.Info info = NewtonsoftJson.Map<MLogin.Info>(profile);
         info.token = _jwtService.GenerateToken(profile.Id.ToString());
@@ -59,7 +59,7 @@ public class ProfileService(DatabaseContext databaseContext, IJwt jwtService) : 
             ?? throw new HttpException(400, MessageDefine.NOT_FOUND_USER);
 
         MStream.Save save = await Reader.Save(file, string.Empty);
-        profile.CoverPicture = Reader.CreateStogare(save.GetPath());
+        profile.CoverPicture = Reader.CreateURL(save.GetPath());
 
         MLogin.Info info = NewtonsoftJson.Map<MLogin.Info>(profile);
         info.token = _jwtService.GenerateToken(profile.Id.ToString());

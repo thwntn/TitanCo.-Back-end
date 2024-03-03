@@ -64,7 +64,7 @@ public class Reader
         return info;
     }
 
-    public static string CreateStogare(string path)
+    public static string CreateURL(string path)
     {
         if (_stogareHost is null)
             Logger.Warning(nameof(_stogareHost));

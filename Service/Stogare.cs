@@ -92,13 +92,13 @@ public class StogareService(DatabaseContext databaseContext, IWSConnection conne
             MapName = save.GetFileName(),
             Created = DateTime.Now,
             DisplayName = save.GetKey(),
-            Url = Reader.CreateStogare(save.GetPath()),
+            Url = Reader.CreateURL(save.GetPath()),
             Parent = stogareId,
             Type = StogareType.File,
             Status = StogareStatus.Normal,
             Size = save.GetSize(),
             ProfileId = profileId,
-            Thumbnail = Reader.CreateStogare(thumbnail)
+            Thumbnail = Reader.CreateURL(thumbnail)
         };
 
         _databaseContext.Add(stogare);

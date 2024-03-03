@@ -40,7 +40,7 @@ public class ProductService(DatabaseContext databaseContext) : IProduct
         var save = files.Select(async item => await Reader.Save(item, string.Empty));
 
         var imageProducts = (await Task.WhenAll(save))
-            .Select(item => new ImageProduct { Url = Reader.CreateStogare(item.GetFileName()), ProductId = productId })
+            .Select(item => new ImageProduct { Url = Reader.CreateURL(item.GetFileName()), ProductId = productId })
             .ToList();
 
         _databaseContext.AddRange(imageProducts);

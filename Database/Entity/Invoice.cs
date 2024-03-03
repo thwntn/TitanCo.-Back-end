@@ -20,8 +20,10 @@ public class Invoice
     [Required]
     public DateTime DueDate { get; set; }
 
-    [Required]
-    public int MethodPayment { get; set; }
+    [ForeignKey(nameof(PaymentId))]
+    public Guid PaymentId { get; set; }
+
+    public Payment Payment { get; set; }
 
     [Required]
     public double Sale { get; set; }

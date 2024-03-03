@@ -29,7 +29,7 @@ public class GroupService(
     public async Task<Group> ChangeImage(string profileId, string groupId, IFormFile file)
     {
         var save = await Reader.Save(file, string.Empty);
-        string url = Reader.CreateStogare(save.GetFileName());
+        string url = Reader.CreateURL(save.GetFileName());
 
         var group = Info(profileId, groupId) ?? throw new HttpException(400, MessageDefine.NOT_FOUND_GROUP);
         group.Image = url;
@@ -46,7 +46,7 @@ public class GroupService(
             {
                 Id = Cryptography.RandomGuid(),
                 ProfileId = profileId,
-                Image = Reader.CreateStogare(Constant.GROUP_IMAGE),
+                Image = Reader.CreateURL(Constant.GROUP_IMAGE),
                 Name = groupName,
             };
         _databaseContext.Add(group);

@@ -16,7 +16,7 @@ public class ShareService(IWSConnection connectionService) : IShare
 
         var compressItem = new MShare.CompressItem(
             $"{tempFolderName}.zip",
-            Reader.CreateStogare($"{tempFolderName}.zip"),
+            Reader.CreateURL($"{tempFolderName}.zip"),
             save.GetSize(),
             new()
         );

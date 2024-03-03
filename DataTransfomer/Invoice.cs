@@ -5,22 +5,28 @@ public class InvoiceDatatransfomer
     public class Create
     {
         [JsonRequired]
-        public string code;
-
-        [JsonRequired]
-        public DateTime dueDate;
-
-        [JsonRequired]
-        public int methodPayment;
-
-        [JsonRequired]
-        public double sale;
-
-        [JsonRequired]
         public string description;
-
-        public string customerId;
     }
+
+    public class ChangeDesctiption
+    {
+        [JsonRequired]
+        public string desctiption;
+    }
+
+    public class ChangeCustomer
+    {
+        [JsonRequired]
+        public Guid customerId;
+    }
+
+    public class ChangePaymentMethod
+    {
+        [JsonRequired]
+        public Guid paymentMethod;
+    }
+
+    public class RemoveProduct { }
 
     public class AddProduct
     {

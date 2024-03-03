@@ -27,5 +27,6 @@ public class Scoped
         services.AddScoped<INote, NoteService>();
         services.AddScoped<IInvoice, InvoiceService>();
         services.AddScoped<IProduct, ProductService>();
+        services.AddScoped<IPayment, PaymentService>();
     }
 }

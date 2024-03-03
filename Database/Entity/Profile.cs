@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Identity;
-
 namespace ReferenceDatabase;
 
 public class Profile

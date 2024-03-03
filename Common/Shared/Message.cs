@@ -4,6 +4,7 @@ public class MessageDefine
 {
     public const string NOT_FOUND_USER = "Not found user!";
     public const string NOT_FOUND_GROUP = "Not found group!";
+    public const string NOT_FOUND_PAYMENT = "Not found payment!";
     public const string NOT_FOUND_NOTEPROCESS = "Not found note process!";
     public const string NOT_FOUND_NOTE = "Not found note!";
     public const string NOT_FOUND_PRODUCT = "Not found product!";

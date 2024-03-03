@@ -1,10 +1,19 @@
 namespace ReferenceService;
 
-public class WSStore
+public class Store
 {
-    private static readonly Dictionary<string, List<ClientHub>> _connections = [];
+    private readonly Dictionary<string, List<ClientHub>> _connections = [];
+    private static Store _instance;
 
-    public static Dictionary<string, List<ClientHub>> GetConnections()
+    private Store() { }
+
+    public static Store GetInstance()
+    {
+        _instance ??= new();
+        return _instance;
+    }
+
+    public Dictionary<string, List<ClientHub>> GetConnections()
     {
         return _connections;
     }
