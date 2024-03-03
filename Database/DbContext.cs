@@ -14,5 +14,6 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : Identi
     public DbSet<Payment> Payment { get; set; }
     public DbSet<Product> Product { get; set; }
     public DbSet<Invoice> Invoice { get; set; }
+    public DbSet<Customer> Customer { get; set; }
     public DbSet<InvoiceProduct> InvoiceProduct { get; set; }
 }

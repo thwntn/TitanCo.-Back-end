@@ -36,8 +36,11 @@ public class Invoice
 
     public Profile Profile { get; set; }
 
-    [AllowNull]
-    public string CustomerId { get; set; }
-
     public ICollection<InvoiceProduct> InvoiceProducts { get; set; }
+
+    [ForeignKey(nameof(CustomerId))]
+    [AllowNull]
+    public Guid CustomerId { get; set; }
+
+    public Customer Customer { get; set; }
 }
