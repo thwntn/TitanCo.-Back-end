@@ -8,6 +8,7 @@ public class MessageDefine
     public const string NOT_FOUND_PAYMENT = "Not found payment!";
     public const string NOT_FOUND_NOTEPROCESS = "Not found note process!";
     public const string NOT_FOUND_NOTE = "Not found note!";
+    public const string NOT_FOUND_DISCOUNT = "Not found discount!";
     public const string NOT_FOUND_PRODUCT = "Not found product!";
     public const string NOT_FOUND_INVOICE = "Not found invoice!";
     public const string NOT_ATTACH = "Not found attach!";

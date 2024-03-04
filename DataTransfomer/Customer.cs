@@ -5,6 +5,8 @@ public class CustomerDataTransfomer
         [JsonRequired]
         public string name;
 
+        public string fullName;
+
         [JsonRequired]
         public string phone;
     }

@@ -1,12 +1,12 @@
 namespace ReferenceService;
 
-public class CustomerService(DatabaseContext databaseContext)
+public class CustomerService(DatabaseContext databaseContext) : ICustomer
 {
     private readonly DatabaseContext _databaseContext = databaseContext;
 
     public List<Customer> List()
     {
-        var customer = _databaseContext.Customer.ToList();
+        var customer = _databaseContext.Customer.Include(customer => customer.Invoices).ToList();
         customer.ForEach(item => item.Image = Reader.CreateURL(item.Image));
 
         return customer;

@@ -20,27 +20,30 @@ public class Invoice
     [Required]
     public DateTime DueDate { get; set; }
 
-    [ForeignKey(nameof(PaymentId))]
-    public Guid PaymentId { get; set; }
-
-    public Payment Payment { get; set; }
-
     [Required]
     public double Sale { get; set; }
 
     [Required]
     public string Description { get; set; }
 
+    [Required]
+    public double Discount { get; set; }
+
+    public ICollection<InvoiceProduct> InvoiceProducts { get; set; }
+
     [ForeignKey(nameof(ProfileId))]
     public string ProfileId { get; set; }
 
     public Profile Profile { get; set; }
-
-    public ICollection<InvoiceProduct> InvoiceProducts { get; set; }
 
     [ForeignKey(nameof(CustomerId))]
     [AllowNull]
     public Guid CustomerId { get; set; }
 
     public Customer Customer { get; set; }
+
+    [ForeignKey(nameof(PaymentId))]
+    public Guid PaymentId { get; set; }
+
+    public Payment Payment { get; set; }
 }

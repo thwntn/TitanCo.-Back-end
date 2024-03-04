@@ -24,7 +24,7 @@ public class Customer(IJwt jwtService, ICustomer customerService) : Controller
     }
 
     [Authorize]
-    [HttpPost(nameof(IActionResult) + "/{customerId}")]
+    [HttpPost(nameof(AddImage) + "/{customerId}")]
     public async Task<IActionResult> AddImage([FromRoute] Guid customerId, [FromForm] IFormCollection form)
     {
         var customer = await _customerService.AddImage(customerId, form.Files[0]);

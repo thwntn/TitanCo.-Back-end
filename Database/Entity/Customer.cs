@@ -9,7 +9,14 @@ public class Customer(string name, string phone)
     public Guid Id { get; set; }
 
     [Required]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public DateTime Created { get; set; }
+
+    [Required]
     public string Name { get; set; } = name;
+
+    [AllowNull]
+    public string FullName { get; set; } = name;
 
     [Required]
     public string Phone { get; set; } = phone;

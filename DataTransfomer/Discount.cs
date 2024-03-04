@@ -1,6 +1,6 @@
 namespace ReferenceDatatransfomer;
 
-public class ProductDatatransfomer
+public class DiscountDataTransformer
 {
     public class Create
     {
@@ -8,12 +8,9 @@ public class ProductDatatransfomer
         public string name;
 
         [JsonRequired]
-        public int price;
+        public double percent;
 
         [JsonRequired]
-        public string description;
-
-        [JsonRequired]
-        public double sale;
+        public double price;
     }
 }
