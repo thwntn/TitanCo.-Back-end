@@ -16,7 +16,7 @@ public class GroupService(
 
     public Group Info(Guid groupId)
     {
-        var group =
+        Group group =
             _databaseContext
                 .Group.Include(group => group.Profile)
                 .Include(group => group.Members)
@@ -30,12 +30,10 @@ public class GroupService(
 
     public async Task<Group> ChangeImage(Guid groupId, IFormFile file)
     {
-        var save = await Reader.Save(file, string.Empty);
-        string url = Reader.CreateURL(save.GetFileName());
+        MStream.Blob blob = await Reader.Save(file, string.Empty);
+        string url = Reader.CreateURL(blob.GetFileName());
 
-        var group =
-            Info(groupId)
-            ?? throw new HttpException(400, MessageContants.NOT_FOUND_GROUP);
+        Group group = Info(groupId) ?? throw new HttpException(400, MessageContants.NOT_FOUND_GROUP);
         group.Image = url;
 
         _databaseContext.Update(group);
@@ -68,32 +66,23 @@ public class GroupService(
             .Where(group =>
                 group.ProfileId == _jwtService.Infomation().profileId
                 || group.Members.Any(member =>
-                    member.ProfileId == _jwtService.Infomation().profileId
-                    && member.Status == GroupInviteStatus.Accept
+                    member.ProfileId == _jwtService.Infomation().profileId && member.Status == GroupInviteStatus.Accept
                 )
             );
 
-        foreach (var group in groups)
-        {
-            group.Members = group
-                .Members.Where(member =>
-                    member.Status == GroupInviteStatus.Accept
-                )
-                .ToList();
-        }
+        foreach (Group group in groups)
+            group.Members = group.Members.Where(member => member.Status == GroupInviteStatus.Accept).ToList();
 
         return groups;
     }
 
     public Group Update(Group record)
     {
-        var group =
+        Group group =
             _databaseContext.Group.FirstOrDefault(item =>
                 (
                     item.ProfileId == _jwtService.Infomation().profileId
-                    || item.Members.Any(item =>
-                        item.ProfileId == _jwtService.Infomation().profileId
-                    )
+                    || item.Members.Any(item => item.ProfileId == _jwtService.Infomation().profileId)
                 )
                 && item.Id == record.Id
             ) ?? throw new HttpException(400, MessageContants.NOT_FOUND_GROUP);
@@ -107,10 +96,9 @@ public class GroupService(
 
     public Group Rename(GroupDatatransformer.Rename rename)
     {
-        var group =
+        Group group =
             _databaseContext.Group.FirstOrDefault(item =>
-                item.ProfileId == _jwtService.Infomation().profileId
-                && item.Id == rename.GroupId
+                item.ProfileId == _jwtService.Infomation().profileId && item.Id == rename.GroupId
             ) ?? throw new HttpException(403, MessageContants.NOT_ACCEPT_ROLE);
 
         group.Name = rename.Name;
@@ -123,12 +111,8 @@ public class GroupService(
 
     public bool Remove(Guid groupId)
     {
-        _databaseContext.Stogare.RemoveRange(
-            _databaseContext.Stogare.Where(stogare =>
-                stogare.GroupId == groupId
-            )
-        );
-        var group =
+        _databaseContext.Stogare.RemoveRange(_databaseContext.Stogare.Where(stogare => stogare.GroupId == groupId));
+        Group group =
             _databaseContext.Group.FirstOrDefault(group => group.Id == groupId)
             ?? throw new HttpException(400, MessageContants.NOT_FOUND_GROUP);
 
@@ -138,13 +122,9 @@ public class GroupService(
         return true;
     }
 
-    public async Task<Stogare> Upload(
-        FormFile file,
-        Guid stogareId,
-        Guid groupId
-    )
+    public async Task<Stogare> Upload(FormFile file, Guid stogareId, Guid groupId)
     {
-        var stogare = await _stogareService.Upload(file, stogareId);
+        Stogare stogare = await _stogareService.Upload(file, stogareId);
         stogare.GroupId = groupId;
         _databaseContext.Update(stogare);
         _databaseContext.SaveChanges();
@@ -153,41 +133,36 @@ public class GroupService(
 
     public string RemoveStogare(Guid stogareId)
     {
-        var message = _stogareService.Remove(stogareId);
+        string message = _stogareService.Remove(stogareId);
         return message;
     }
 
-    public IEnumerable<GroupMember> InviteMember(
-        GroupDatatransformer.ModifyMember modifyMember
-    )
+    public IEnumerable<GroupMember> InviteMember(GroupDatatransformer.ModifyMember modifyMember)
     {
-        var group =
+        Group group =
             _databaseContext.Group.FirstOrDefault(item =>
-                (item.ProfileId == _jwtService.Infomation().profileId)
-                && item.Id == modifyMember.GroupId
+                (item.ProfileId == _jwtService.Infomation().profileId) && item.Id == modifyMember.GroupId
             ) ?? throw new HttpException(400, MessageContants.NOT_FOUND_GROUP);
 
-        var members = _databaseContext
-            .Profile.Where(user =>
-                modifyMember.Emails.Any(email => user.Email == email)
-            )
-            .ToList();
-        if (members.Count == 0)
-            throw new HttpException(400, MessageContants.NOT_FOUND_ACCOUNT);
-
-        IEnumerable<GroupMember> groupMembers = members.Select(
-            item => new GroupMember
-            {
-                Status = GroupInviteStatus.Invited,
-                GroupId = modifyMember.GroupId,
-                ProfileId = item.Id
-            }
+        IQueryable<Profile> members = _databaseContext.Profile.Where(user =>
+            modifyMember.Emails.Any(email => user.Email == email)
         );
+
+        if (members.Any() == false)
+            throw new HttpException(400, MessageContants.NOT_FOUND_ACCOUNT);
+        ;
+
+        IEnumerable<GroupMember> groupMembers = members.Select(item => new GroupMember
+        {
+            Status = GroupInviteStatus.Invited,
+            GroupId = modifyMember.GroupId,
+            ProfileId = item.Id
+        });
 
         _databaseContext.AddRange(groupMembers);
         _databaseContext.SaveChanges();
 
-        foreach (var item in members)
+        foreach (Profile item in members)
             _notificationService.Add(
                 item.Id,
                 _jwtService.Infomation().profileId,
@@ -201,9 +176,8 @@ public class GroupService(
 
     public string RemoveMember(GroupDatatransformer.ModifyMember modifyMember)
     {
-        var members = _databaseContext.GroupMember.Where(member =>
-            modifyMember.Emails.Any(item => member.Profile.Email == item)
-            && member.GroupId == modifyMember.GroupId
+        IQueryable<GroupMember> members = _databaseContext.GroupMember.Where(member =>
+            modifyMember.Emails.Any(item => member.Profile.Email == item) && member.GroupId == modifyMember.GroupId
         );
 
         _databaseContext.RemoveRange(members);
@@ -223,8 +197,7 @@ public class GroupService(
             )
             .OrderByDescending(stogare => stogare.Created);
 
-        IEnumerable<MStogare.StogareWithCounter> result =
-            _stogareService.FolderCounter(stogares);
+        IEnumerable<MStogare.StogareWithCounter> result = _stogareService.FolderCounter(stogares);
 
         return result;
     }
@@ -232,14 +205,10 @@ public class GroupService(
     public IEnumerable<Stogare> ListDestination(Guid groupId, Guid stogareId)
     {
         IQueryable<Stogare> folders = _databaseContext.Stogare.Where(stogare =>
-            stogare.GroupId == groupId
-            && stogare.Type == StogareType.Folder
-            && stogare.Status == StogareStatus.Normal
+            stogare.GroupId == groupId && stogare.Type == StogareType.Folder && stogare.Status == StogareStatus.Normal
         );
 
-        IEnumerable<Guid> children = _stogareService.RecursiveChildren(
-            [stogareId]
-        );
+        IEnumerable<Guid> children = _stogareService.RecursiveChildren([stogareId]);
         IEnumerable<Stogare> stogareHandler = folders.Where(stogare =>
             children.Any(item => stogare.Id == item) == false
         );
@@ -249,16 +218,12 @@ public class GroupService(
 
     public string AcceptInvite(Guid groupId)
     {
-        var group =
-            _databaseContext
-                .Group.Include(group => group.Members)
-                .FirstOrDefault(group => group.Id == groupId)
+        Group group =
+            _databaseContext.Group.Include(group => group.Members).FirstOrDefault(group => group.Id == groupId)
             ?? throw new HttpException(400, MessageContants.NOT_FOUND_GROUP);
 
-        var member =
-            group.Members.FirstOrDefault(member =>
-                member.ProfileId == _jwtService.Infomation().profileId
-            )
+        GroupMember member =
+            group.Members.FirstOrDefault(member => member.ProfileId == _jwtService.Infomation().profileId)
             ?? throw new HttpException(400, MessageContants.NOT_FOUND_ACCOUNT);
 
         if (member.Status is GroupInviteStatus.Accept)
@@ -286,9 +251,5 @@ public class GroupService(
         return groups;
     }
 
-    private void RealtimeUpdate() =>
-        _connectionService.InvokeAllUser(
-            nameof(HubMethodName.UpdateGroup),
-            null
-        );
+    private void RealtimeUpdate() => _connectionService.InvokeAllUser(nameof(HubMethodName.UpdateGroup), null);
 }

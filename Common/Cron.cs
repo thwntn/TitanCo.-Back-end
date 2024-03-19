@@ -5,6 +5,8 @@ public class CronJob
     public static async void Configure(WebApplicationBuilder builder)
     {
         ServiceProvider provider = builder.Services.BuildServiceProvider();
+        DatabaseContext databaseContext = provider.GetService<DatabaseContext>();
+        IRole roleService = provider.GetService<IRole>();
 
         IJobDetail job = JobBuilder.Create<CronJobService>().WithIdentity(nameof(CronJobService)).Build();
         job.JobDataMap.Put(nameof(ServiceProvider), provider);
@@ -16,15 +18,14 @@ public class CronJob
             .WithSimpleSchedule(x => x.WithIntervalInSeconds(30).RepeatForever())
             .Build();
 
-        var schedulerFactory = SchedulerBuilder.Create().Build();
-        var scheduler = await schedulerFactory.GetScheduler();
+        Quartz.Impl.StdSchedulerFactory schedulerFactory = SchedulerBuilder.Create().Build();
+        IScheduler scheduler = await schedulerFactory.GetScheduler();
         await scheduler.ScheduleJob(job, trigger);
 
-        IRole roleService = provider.GetService<IRole>();
-        if (Convert.ToBoolean(Environment.GetEnvironmentVariable(nameof(EnvironmentKey.Migration))) is false)
-        {
-            roleService.Sync();
-            await scheduler.Start();
-        }
+        // auto.migration
+        await databaseContext.Database.MigrateAsync();
+
+        roleService.Sync();
+        await scheduler.Start();
     }
 }

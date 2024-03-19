@@ -8,18 +8,22 @@ public class ShareService(IWSConnection connectionService) : IShare
     public async Task Transfer(IFormFile file, int accountId)
     {
         string tempFolderName = Cryptography.RandomGuid();
-        MStream.Save save = await Reader.Save(file, tempFolderName);
+        MStream.Blob blob = await Reader.Save(file, tempFolderName);
 
         string currentLocation = $"{Directory.GetCurrentDirectory()}/{_pathFolder}/{tempFolderName}";
         string pathCompress = $"{currentLocation}.zip";
         ZipFile.CreateFromDirectory(currentLocation, pathCompress);
 
-        var compressItem = new MShare.CompressItem(
+        MShare.CompressItem compressItem = new MShare.CompressItem(
             $"{tempFolderName}.zip",
             Reader.CreateURL($"{tempFolderName}.zip"),
-            save.GetSize(),
+            blob.GetSize(),
             new()
         );
-        _connectionService.InvokeWithaccountId(string.Concat(accountId), nameof(HubMethodName.UpdateListFile), compressItem);
+        _connectionService.InvokeWithaccountId(
+            string.Concat(accountId),
+            nameof(HubMethodName.UpdateListFile),
+            compressItem
+        );
     }
 }

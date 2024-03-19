@@ -18,7 +18,7 @@ public class AuthService(
 
     public async Task<Account> Signup(AuthDataTransformer.Signup signup)
     {
-        var existEmail = _databaseContext.Account.Any(user => user.Email == signup.Email);
+        bool existEmail = _databaseContext.Account.Any(user => user.Email == signup.Email);
         if (existEmail)
             throw new HttpException(400, MessageContants.EMAIL_EXIST);
 
@@ -40,7 +40,7 @@ public class AuthService(
 
     public bool VerifyEmail(AuthDataTransformer.VerifyEmail verifyEmail)
     {
-        var account =
+        Account account =
             _databaseContext
                 .Account.Include(account => account.Profile)
                 .FirstOrDefault(account => account.Email == verifyEmail.Email)
@@ -52,7 +52,7 @@ public class AuthService(
     {
         string hashPassword = Cryptography.Md5(signin.Password);
 
-        var account =
+        Account account =
             _databaseContext
                 .Account.Include(account => account.Profile)
                 .Include(account => account.RoleAccounts)
@@ -78,7 +78,7 @@ public class AuthService(
 
     public Account ConfirmCode(Guid accountId, string code)
     {
-        var account = _profileService.GeAccoutWithRole(accountId);
+        Account account = _profileService.GeAccoutWithRole(accountId);
         if (account.Code != code)
             throw new HttpException(400, MessageContants.CONFIRM_CODE_NOT_SUCCESS);
 
@@ -93,7 +93,7 @@ public class AuthService(
 
     public async Task<string> ResetPassword(string email)
     {
-        var account =
+        Account account =
             _databaseContext
                 .Account.Include(account => account.Profile)
                 .FirstOrDefault(account => account.Email == email)
@@ -113,20 +113,20 @@ public class AuthService(
     public string ChangePassword(AuthDataTransformer.ChangePassword changePassword)
     {
         string hashPassword = Cryptography.Md5(changePassword.Password);
-        var user =
+        Account account =
             _databaseContext
                 .Account.Include(user => user.Profile)
                 .FirstOrDefault(user => user.Email == changePassword.Email && user.HashPassword == hashPassword)
             ?? throw new HttpException(400, MessageContants.NOT_FOUND_ACCOUNT);
 
         if (changePassword.NewPassword == changePassword.ConfirmPassword)
-            user.HashPassword = Cryptography.Md5(changePassword.NewPassword);
+            account.HashPassword = Cryptography.Md5(changePassword.NewPassword);
         else
             throw new HttpException(400, MessageContants.PASSWORD_NOT_MATCH);
 
         _mailService.SendCode(changePassword.Email, changePassword.NewPassword);
 
-        _databaseContext.Update(user);
+        _databaseContext.Update(account);
         _databaseContext.SaveChanges();
 
         return MessageContants.REQUEST_SUCCESS;
@@ -146,8 +146,8 @@ public class AuthService(
             return null;
 
         MGoogle.ProfileResponse info = NewtonsoftJson.Map<MGoogle.ProfileResponse>(getProfileResponse);
-        var profile = _databaseContext.Account.FirstOrDefault(user => user.Google.Sub == info.sub);
-        var handler = InsertInfo(info);
+        Account account = _databaseContext.Account.FirstOrDefault(user => user.Google.Sub == info.sub);
+        Profile handler = InsertInfo(info);
         return handler;
     }
 

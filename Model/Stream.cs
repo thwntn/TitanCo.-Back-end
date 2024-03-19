@@ -2,7 +2,7 @@ namespace ReferenceModel;
 
 public class MStream
 {
-    public class Save(string key, string fileName, string path, long size)
+    public class Blob(string key, string fileName, string path, long size)
     {
         private readonly string _key = key;
         private readonly string _fileName = fileName;

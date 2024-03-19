@@ -23,7 +23,7 @@ public class MailService() : IMail
                     IsBodyHtml = true
                 };
             msg.To.Add(email);
-            var basicauthenticationinfo = new NetworkCredential(_mailOwner, _mailAppPasswprd);
+            NetworkCredential basicauthenticationinfo = new NetworkCredential(_mailOwner, _mailAppPasswprd);
             SmtpClient client =
                 new()
                 {
@@ -44,7 +44,9 @@ public class MailService() : IMail
 
     public async Task SendCode(string toEmail, string code)
     {
-        var streamReader = new StreamReader(Directory.GetCurrentDirectory() + "/Common/Metadata/FormMessage.html");
+        StreamReader streamReader = new StreamReader(
+            Directory.GetCurrentDirectory() + "/Common/Metadata/FormMessage.html"
+        );
         string body = await streamReader.ReadToEndAsync();
         streamReader.Close();
         body = body.Replace("___CODE___", code);
@@ -53,7 +55,9 @@ public class MailService() : IMail
 
     public async Task SendExpirePlanning(string toEmail, string code)
     {
-        var streamReader = new StreamReader(Directory.GetCurrentDirectory() + "/Common/Metadata/FormMessage.html");
+        StreamReader streamReader = new StreamReader(
+            Directory.GetCurrentDirectory() + "/Common/Metadata/FormMessage.html"
+        );
         string body = await streamReader.ReadToEndAsync();
         streamReader.Close();
         body = body.Replace("___CODE___", code);

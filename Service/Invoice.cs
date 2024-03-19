@@ -32,7 +32,7 @@ public class InvoiceService(DatabaseContext databaseContext, IJwt jwtService, IR
 
     public Invoice Info(Guid invoiceId)
     {
-        var invoice =
+        Invoice invoice =
             _databaseContext
                 .Invoice.Include(invoice => invoice.InvoiceDiscounts)
                 .ThenInclude(invoiceDiscount => invoiceDiscount.Discount)
@@ -48,28 +48,28 @@ public class InvoiceService(DatabaseContext databaseContext, IJwt jwtService, IR
 
     public Invoice Create(InvoiceDatatransfomer.Create create)
     {
-        var products = _databaseContext
+        IEnumerable<Product> products = _databaseContext
             .Product.AsEnumerable()
-            .Where(product => create.InvoiceProducts.Any(item => item.ProductId == product.Id))
-            .ToList();
-        var discount = _databaseContext.Discount.Where(discount => discount.Id == create.DiscountId).FirstOrDefault();
+            .Where(product => create.InvoiceProducts.Any(item => item.ProductId == product.Id));
 
-        var invoice = NewtonsoftJson.Map<Invoice>(create);
+        Invoice invoice = NewtonsoftJson.Map<Invoice>(create);
         invoice.Created = DateTime.Now;
         invoice.Updated = DateTime.Now;
         invoice.ProfileId = _jwtService.Infomation().profileId;
 
-        var invoiceProducts = create
-            .InvoiceProducts.Select(product => new InvoiceProduct(
-                invoice.Id,
-                product.ProductId,
-                products.Find(item => item.Id == product.ProductId).Price,
-                product.Quanlity
-            ))
-            .ToList();
-        invoice.InvoiceProducts = invoiceProducts;
+        IEnumerable<InvoiceProduct> invoiceProducts = create.InvoiceProducts.Select(product => new InvoiceProduct(
+            invoice.Id,
+            product.ProductId,
+            products.FirstOrDefault(item => item.Id == product.ProductId).Price,
+            product.Quanlity
+        ));
 
-        if (discount is not null)
+        invoice.InvoiceProducts = invoiceProducts.ToList();
+        if ((create.DiscountId == Guid.Empty) is false)
+        {
+            Discount discount =
+                _databaseContext.Discount.Where(discount => discount.Id == create.DiscountId).FirstOrDefault()
+                ?? throw new HttpException(400, MessageContants.NOT_FOUND_DISCOUNT);
             invoice.InvoiceDiscounts =
             [
                 new InvoiceDiscount
@@ -79,6 +79,7 @@ public class InvoiceService(DatabaseContext databaseContext, IJwt jwtService, IR
                     Percent = discount.Percent
                 }
             ];
+        }
 
         _databaseContext.Add(invoice);
         _databaseContext.SaveChanges();
@@ -87,7 +88,7 @@ public class InvoiceService(DatabaseContext databaseContext, IJwt jwtService, IR
 
     public string Remove(Guid invoiceId)
     {
-        var invoice =
+        Invoice invoice =
             _databaseContext
                 .Invoice.Where(invoice =>
                     invoice.Id == invoiceId && invoice.ProfileId == _jwtService.Infomation().profileId
@@ -102,7 +103,7 @@ public class InvoiceService(DatabaseContext databaseContext, IJwt jwtService, IR
 
     public InvoiceProduct AddProduct(InvoiceDatatransfomer.AddProduct addProduct)
     {
-        var product =
+        Product product =
             _databaseContext.Product.FirstOrDefault(product =>
                 product.Id == addProduct.ProductId && product.ProfileId == _jwtService.Infomation().profileId
             ) ?? throw new HttpException(400, MessageContants.NOT_FOUND_INVOICE);

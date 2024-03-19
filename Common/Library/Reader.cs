@@ -44,7 +44,7 @@ public class Reader
         }
     }
 
-    public static async Task<MStream.Save> Save(IFormFile file, string path)
+    public static async Task<MStream.Blob> Save(IFormFile file, string path)
     {
         string fileName = Cryptography.RandomGuid() + Path.GetExtension(file.FileName);
         string directory = Directory.GetCurrentDirectory() + $"/{_prefix}/{path}/";
@@ -54,12 +54,12 @@ public class Reader
         await file.CopyToAsync(stream);
 
         stream.Close();
-        return new MStream.Save(file.Name, fileName, fileName, file.Length);
+        return new MStream.Blob(file.Name, fileName, fileName, file.Length);
     }
 
-    public static MStream.Save GetSize(IFormFile file)
+    public static MStream.Blob GetSize(IFormFile file)
     {
-        var info = new MStream.Save(file.Name, string.Empty, string.Empty, file.Length);
+        MStream.Blob info = new(file.Name, string.Empty, string.Empty, file.Length);
         return info;
     }
 

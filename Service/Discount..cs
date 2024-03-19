@@ -18,7 +18,7 @@ public class DiscountService(DatabaseContext databaseContext, IJwt jwtService) :
 
     public Discount Create(DiscountDataTransformer.Create create)
     {
-        var discount = NewtonsoftJson.Map<Discount>(create);
+        Discount discount = NewtonsoftJson.Map<Discount>(create);
         discount.ProfileId = _jwtService.Infomation().profileId;
         discount.Created = DateTime.Now;
 
@@ -29,7 +29,7 @@ public class DiscountService(DatabaseContext databaseContext, IJwt jwtService) :
 
     public string Remove(Guid discountId)
     {
-        var discount =
+        Discount discount =
             _databaseContext
                 .Discount.Include(discount => discount.InvoiceDiscounts)
                 .FirstOrDefault(discount =>
@@ -46,7 +46,7 @@ public class DiscountService(DatabaseContext databaseContext, IJwt jwtService) :
 
     public Discount ChangeStatus(Guid discountId, DiscountStatus discountStatus)
     {
-        var discount =
+        Discount discount =
             _databaseContext.Discount.FirstOrDefault(discount =>
                 discount.Id == discountId && discount.ProfileId == _jwtService.Infomation().profileId
             ) ?? throw new HttpException(400, MessageContants.NOT_FOUND_DISCOUNT);

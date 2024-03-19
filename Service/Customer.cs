@@ -52,9 +52,9 @@ public class CustomerService(DatabaseContext databaseContext, IJwt jwtService, I
         Customer customer =
             _databaseContext.Customer.Find(customerId)
             ?? throw new HttpException(400, MessageContants.NOT_FOUND_CUSTOMER);
-        var save = await Reader.Save(file, string.Empty);
+        MStream.Blob blob = await Reader.Save(file, string.Empty);
 
-        customer.Image = Reader.CreateURL(save.GetFileName());
+        customer.Image = Reader.CreateURL(blob.GetFileName());
         _databaseContext.Update(customer);
         _databaseContext.SaveChanges();
 

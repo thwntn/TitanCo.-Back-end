@@ -14,7 +14,7 @@ public class PlanningService(
 
     public IEnumerable<Planning> List(string weekOfYear)
     {
-        var plannings = _databaseContext.Planning.Where(planning =>
+        IEnumerable<Planning> plannings = _databaseContext.Planning.Where(planning =>
             planning.ProfileId == _jwtService.Infomation().profileId && planning.WeekOfYear == weekOfYear
         );
 
@@ -34,7 +34,7 @@ public class PlanningService(
 
     public string Remove(Guid planningId)
     {
-        var planning =
+        Planning planning =
             _databaseContext.Planning.FirstOrDefault(planning =>
                 planning.Id == planningId && planning.ProfileId == _jwtService.Infomation().profileId
             ) ?? throw new HttpException(400, MessageContants.NOT_FOUND_PLANNING);
@@ -48,14 +48,14 @@ public class PlanningService(
     {
         string date = DateTime.Now.ToString("yyyy-MM-dd");
         string time = DateTime.Now.ToString("HH:mm");
-        var plannings = _databaseContext
+        IEnumerable<Planning> plannings = _databaseContext
             .Planning.Include(planning => planning.Profile)
             .Where(planning =>
                 (planning.SetEmail == true || planning.SetNotification == true) && planning.DateTime == date
             )
             .ToList();
 
-        var update = plannings.Where(planning =>
+        IEnumerable<Planning> update = plannings.Where(planning =>
         {
             if (planning.SetNotification && DateTime.Parse(planning.From) <= DateTime.Parse(time))
             {

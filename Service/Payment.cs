@@ -23,8 +23,8 @@ public class PaymentService(DatabaseContext databaseContext, IJwt jwtService) : 
                 payment.Id == paymentId && profileIds.Contains(payment.ProfileId)
             ) ?? throw new HttpException(400, MessageContants.NOT_FOUND_PAYMENT);
 
-        MStream.Save save = await Reader.Save(file, string.Empty);
-        payment.Image = Reader.CreateURL(save.GetFileName());
+        MStream.Blob blob = await Reader.Save(file, string.Empty);
+        payment.Image = Reader.CreateURL(blob.GetFileName());
 
         _databaseContext.Update(payment);
         _databaseContext.SaveChanges();

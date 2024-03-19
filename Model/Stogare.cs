@@ -9,7 +9,7 @@ public class MStogare
     }
 
     public class StogareWithThumbnail(string key, string fileName, string path, long size, string thumbnail)
-        : MStream.Save(key, fileName, path, size)
+        : MStream.Blob(key, fileName, path, size)
     {
         private readonly string _thumbnail = thumbnail;
 

@@ -36,7 +36,7 @@ public class NoteService(DatabaseContext databaseContext, IJwt jwtService) : INo
 
     public Note UpdateContent(Guid noteId, NoteDatatransformer.UpdateContent updateContent)
     {
-        var note =
+        Note note =
             _databaseContext.Note.FirstOrDefault(note =>
                 note.ProfileId == _jwtService.Infomation().profileId && note.Id == noteId
             ) ?? throw new HttpException(400, MessageContants.NOT_FOUND_NOTE);
@@ -49,13 +49,13 @@ public class NoteService(DatabaseContext databaseContext, IJwt jwtService) : INo
 
     public Note Update(NoteDatatransformer.Update update)
     {
-        var exist = _databaseContext.Note.Any(note =>
+        bool exist = _databaseContext.Note.Any(note =>
             note.ProfileId == _jwtService.Infomation().profileId && note.Id == update.Id
         );
         if (exist is false)
             throw new HttpException(400, MessageContants.NOT_FOUND_NOTE);
 
-        var note = NewtonsoftJson.Map<Note>(update);
+        Note note = NewtonsoftJson.Map<Note>(update);
         _databaseContext.Update(note);
         _databaseContext.SaveChanges();
         return note;
@@ -63,49 +63,49 @@ public class NoteService(DatabaseContext databaseContext, IJwt jwtService) : INo
 
     public Note MoveToTrash(Guid noteId)
     {
-        var note =
+        Note note =
             _databaseContext.Note.FirstOrDefault(note =>
                 note.Id == noteId && note.ProfileId == _jwtService.Infomation().profileId
             ) ?? throw new HttpException(400, MessageContants.NOT_FOUND_NOTE);
 
         note.Status = StatusNote.Remove;
         _databaseContext.Update(note);
-        var update = _databaseContext.SaveChanges();
+        _databaseContext.SaveChanges();
 
         return note;
     }
 
     public Note Archive(Guid noteId)
     {
-        var note =
+        Note note =
             _databaseContext.Note.FirstOrDefault(note =>
                 note.Id == noteId && note.ProfileId == _jwtService.Infomation().profileId
             ) ?? throw new HttpException(400, MessageContants.NOT_FOUND_NOTE);
 
         note.Status = StatusNote.Archive;
         _databaseContext.Update(note);
-        var update = _databaseContext.SaveChanges();
+        _databaseContext.SaveChanges();
 
         return note;
     }
 
     public Note Restore(Guid noteId)
     {
-        var note =
+        Note note =
             _databaseContext.Note.FirstOrDefault(note =>
                 note.Id == noteId && note.ProfileId == _jwtService.Infomation().profileId
             ) ?? throw new HttpException(400, MessageContants.NOT_FOUND_NOTE);
 
         note.Status = StatusNote.Default;
         _databaseContext.Update(note);
-        var update = _databaseContext.SaveChanges();
+        _databaseContext.SaveChanges();
 
         return note;
     }
 
     public string Remove(Guid noteId)
     {
-        var note =
+        Note note =
             _databaseContext.Note.FirstOrDefault(note =>
                 note.Id == noteId && note.ProfileId == _jwtService.Infomation().profileId
             ) ?? throw new HttpException(400, MessageContants.NOT_FOUND_NOTE);

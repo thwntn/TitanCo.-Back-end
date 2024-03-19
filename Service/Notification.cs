@@ -1,10 +1,7 @@
 namespace ReferenceService;
 
-public class NotificationService(
-    DatabaseContext databaseContext,
-    IWSConnection wsConnectionService,
-    IJwt jwtService
-) : INotification
+public class NotificationService(DatabaseContext databaseContext, IWSConnection wsConnectionService, IJwt jwtService)
+    : INotification
 {
     private readonly DatabaseContext _databaseContext = databaseContext;
     private readonly IWSConnection _wsConnectionService = wsConnectionService;
@@ -12,15 +9,12 @@ public class NotificationService(
 
     public IEnumerable<Notification> List()
     {
-        var notifications = _databaseContext
+        IEnumerable<Notification> notifications = _databaseContext
             .Notification.Include(notification => notification.Profile)
-            .Where(notification =>
-                notification.ProfileId == _jwtService.Infomation().profileId
-            )
-            .OrderBy(item => item.IsRead)
-            .ToList();
+            .Where(notification => notification.ProfileId == _jwtService.Infomation().profileId)
+            .OrderBy(item => item.IsRead);
 
-        var result = notifications.Join(
+        IEnumerable<Notification> result = notifications.Join(
             _databaseContext.Profile,
             notification => notification.FromId,
             user => user.Id,
@@ -34,12 +28,7 @@ public class NotificationService(
         return result;
     }
 
-    public Notification Add(
-        Guid toAccount,
-        Guid fromAccount,
-        NotificationType type,
-        object jsonData
-    )
+    public Notification Add(Guid toAccount, Guid fromAccount, NotificationType type, object jsonData)
     {
         Notification notification =
             new()
@@ -61,15 +50,10 @@ public class NotificationService(
 
     public Notification Read(Guid notificationId)
     {
-        var notification =
+        Notification notification =
             _databaseContext.Notification.FirstOrDefault(notification =>
-                notification.Id == notificationId
-                && notification.ProfileId == _jwtService.Infomation().profileId
-            )
-            ?? throw new HttpException(
-                400,
-                MessageContants.NOT_FOUND_NOTIFICATION
-            );
+                notification.Id == notificationId && notification.ProfileId == _jwtService.Infomation().profileId
+            ) ?? throw new HttpException(400, MessageContants.NOT_FOUND_NOTIFICATION);
 
         notification.IsRead = true;
         _databaseContext.Update(notification);
@@ -81,15 +65,10 @@ public class NotificationService(
 
     public Notification Handle(Guid notificationId)
     {
-        var notification =
+        Notification notification =
             _databaseContext.Notification.FirstOrDefault(notification =>
-                notification.Id == notificationId
-                && notification.ProfileId == _jwtService.Infomation().profileId
-            )
-            ?? throw new HttpException(
-                400,
-                MessageContants.NOT_FOUND_NOTIFICATION
-            );
+                notification.Id == notificationId && notification.ProfileId == _jwtService.Infomation().profileId
+            ) ?? throw new HttpException(400, MessageContants.NOT_FOUND_NOTIFICATION);
 
         notification.Handle = true;
         notification.IsRead = true;

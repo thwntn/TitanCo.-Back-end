@@ -1,7 +1,6 @@
 namespace ReferenceService;
 
-public class ProfileService(DatabaseContext databaseContext, IJwt jwtService)
-    : IProfile
+public class ProfileService(DatabaseContext databaseContext, IJwt jwtService) : IProfile
 {
     private readonly DatabaseContext _databaseContext = databaseContext;
     private readonly IJwt _jwtService = jwtService;
@@ -33,35 +32,27 @@ public class ProfileService(DatabaseContext databaseContext, IJwt jwtService)
 
     public Account Update(ProfileDataTransfromer.Update update)
     {
-        var account = _jwtService.Account();
+        Account account = _jwtService.Account();
 
         account.Profile.Name = update.Name;
         account.Profile.Phone = update.Phone;
         account.Profile.Address = update.Address;
 
         _databaseContext.Update(account);
-        account.Token = _jwtService.GenerateToken(
-            account.Profile.Id,
-            account.Id,
-            account.ParentAccountId
-        );
+        account.Token = _jwtService.GenerateToken(account.Profile.Id, account.Id, account.ParentAccountId);
 
         return account;
     }
 
     public async Task<Account> ChangeAvatar(IFormFile file)
     {
-        var account = _jwtService.Account();
+        Account account = _jwtService.Account();
 
-        MStream.Save save = await Reader.Save(file, string.Empty);
-        account.Profile.Avatar = Reader.CreateURL(save.GetPath());
+        MStream.Blob blob = await Reader.Save(file, string.Empty);
+        account.Profile.Avatar = Reader.CreateURL(blob.GetPath());
 
         Account info = NewtonsoftJson.Map<Account>(account);
-        info.Token = _jwtService.GenerateToken(
-            account.Profile.Id,
-            account.Id,
-            account.ParentAccountId
-        );
+        info.Token = _jwtService.GenerateToken(account.Profile.Id, account.Id, account.ParentAccountId);
 
         _databaseContext.Update(account);
         _databaseContext.SaveChanges();
@@ -71,17 +62,13 @@ public class ProfileService(DatabaseContext databaseContext, IJwt jwtService)
 
     public async Task<Account> ChangeCoverPicture(IFormFile file)
     {
-        var account = _jwtService.Account();
+        Account account = _jwtService.Account();
 
-        MStream.Save save = await Reader.Save(file, string.Empty);
-        account.Profile.CoverPicture = Reader.CreateURL(save.GetPath());
+        MStream.Blob blob = await Reader.Save(file, string.Empty);
+        account.Profile.CoverPicture = Reader.CreateURL(blob.GetPath());
 
         Account info = NewtonsoftJson.Map<Account>(account);
-        info.Token = _jwtService.GenerateToken(
-            account.Profile.Id,
-            account.Id,
-            account.ParentAccountId
-        );
+        info.Token = _jwtService.GenerateToken(account.Profile.Id, account.Id, account.ParentAccountId);
 
         _databaseContext.Update(account);
         _databaseContext.SaveChanges();

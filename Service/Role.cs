@@ -8,7 +8,6 @@ public class RoleService(DatabaseContext databaseContext, IJwt jwtService) : IRo
     public void Sync()
     {
         IEnumerable<Role> roles = _databaseContext.Role.AsEnumerable();
-
         string[] names = Enum.GetNames(typeof(RoleContant)).Cast<string>().ToArray();
 
         List<Role> add = [];

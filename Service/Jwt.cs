@@ -57,7 +57,10 @@ public class JwtService(IHttpContextAccessor httpContextAccessor, DatabaseContex
     public Infomation ReadToken(HttpRequest httpRequest)
     {
         JwtSecurityTokenHandler jwtSecurityTokenHandler = new();
-        _ = AuthenticationHeaderValue.TryParse(httpRequest.Headers[HeaderNames.Authorization], out var headerValue);
+        _ = AuthenticationHeaderValue.TryParse(
+            httpRequest.Headers[HeaderNames.Authorization],
+            out AuthenticationHeaderValue headerValue
+        );
         SecurityToken token = jwtSecurityTokenHandler.ReadToken(headerValue.Parameter);
         JwtSecurityToken jwtSecurityToken = (JwtSecurityToken)token;
         return NewtonsoftJson.Map<Infomation>(jwtSecurityToken.Payload);

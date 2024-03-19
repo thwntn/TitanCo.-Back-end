@@ -37,7 +37,7 @@ public class ExtraService(DatabaseContext databaseContext, IJwt jwtService) : IE
         string hashPassword = Cryptography.Md5(signin.Password);
         LoginAccount accountLogin = new();
 
-        var account =
+        Account account =
             _databaseContext
                 .Account.Include(account => account.Profile)
                 .Include(account => account.RoleAccounts)
@@ -61,11 +61,11 @@ public class ExtraService(DatabaseContext databaseContext, IJwt jwtService) : IE
 
     public IEnumerable<Account> List()
     {
-        var profile =
+        Profile profile =
             _databaseContext.Profile.FirstOrDefault(profile => profile.Id == _jwtService.Infomation().profileId)
             ?? throw new HttpException(400, MessageContants.NOT_FOUND_ACCOUNT);
 
-        var list = _databaseContext
+        IQueryable<Account> list = _databaseContext
             .Account.Include(account => account.Profile)
             .Include(account => account.LoginAccounts)
             .Include(account => account.RoleAccounts)

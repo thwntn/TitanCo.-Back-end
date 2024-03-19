@@ -7,7 +7,8 @@ public class CronJobService() : IJob
 
     public Task Execute(IJobExecutionContext jobExecutionContext)
     {
-        var serviceProvider = (ServiceProvider)jobExecutionContext.MergedJobDataMap[nameof(ServiceProvider)];
+        ServiceProvider serviceProvider = (ServiceProvider)
+            jobExecutionContext.MergedJobDataMap[nameof(ServiceProvider)];
         _databaseContext = serviceProvider.GetService<DatabaseContext>();
         _planningService = serviceProvider.GetService<IPlanning>();
 

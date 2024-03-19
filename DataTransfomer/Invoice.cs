@@ -10,7 +10,6 @@ public class InvoiceDatatransfomer
         [JsonRequired]
         public string Description { get; set; }
 
-        [JsonRequired]
         public Guid DiscountId { get; set; }
 
         [JsonRequired]

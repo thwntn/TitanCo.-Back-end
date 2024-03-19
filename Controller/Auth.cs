@@ -14,8 +14,8 @@ public class Auth(DatabaseContext db, IAuth authService, IJwt jwtService, IExtra
     public async Task<IActionResult> Signup(AuthDataTransformer.Signup signup)
     {
         Thread.Sleep(Constant.DELAY_API);
-        var data = await _authService.Signup(signup);
-        return Ok(data);
+        var account = await _authService.Signup(signup);
+        return Ok(account);
     }
 
     [HttpPost(nameof(VerifyEmail))]
@@ -30,16 +30,16 @@ public class Auth(DatabaseContext db, IAuth authService, IJwt jwtService, IExtra
     public async Task<IActionResult> SigninWithPassword([FromBody] AuthDataTransformer.Signin signin)
     {
         Thread.Sleep(Constant.DELAY_API);
-        var info = await _authService.SigninWithPassword(signin);
-        return Ok(info);
+        var account = await _authService.SigninWithPassword(signin);
+        return Ok(account);
     }
 
     [HttpPost(nameof(ConfirmCode))]
     public IActionResult ConfirmCode(AuthDataTransformer.ConfirmCode confirmCode)
     {
         Thread.Sleep(Constant.DELAY_API);
-        var message = _authService.ConfirmCode(confirmCode.AccountId, confirmCode.Code);
-        return Ok(message);
+        var account = _authService.ConfirmCode(confirmCode.AccountId, confirmCode.Code);
+        return Ok(account);
     }
 
     [HttpPatch(nameof(ResetPassword))]
@@ -62,7 +62,7 @@ public class Auth(DatabaseContext db, IAuth authService, IJwt jwtService, IExtra
     public async Task<IActionResult> Google([FromQuery] string code)
     {
         Thread.Sleep(Constant.DELAY_API);
-        var login = await _authService.LoginGoogle(code);
-        return Ok(login);
+        var profile = await _authService.LoginGoogle(code);
+        return Ok(profile);
     }
 }
