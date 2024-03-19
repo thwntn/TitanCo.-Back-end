@@ -26,7 +26,7 @@ public class GoogleService : IGoogle
         return acessrs;
     }
 
-    public async Task<MGoogle.GetProfileResponse> GetProfile(string accessToken)
+    public async Task<MGoogle.ProfileResponse> Profile(string accessToken)
     {
         string url =
             Environment.GetEnvironmentVariable(nameof(EnvironmentKey.ProfileHost))
@@ -35,7 +35,7 @@ public class GoogleService : IGoogle
         HttpResponseMessage rs = await new HttpClient().GetAsync(url);
 
         string s = await rs.Content.ReadAsStringAsync();
-        MGoogle.GetProfileResponse info = NewtonsoftJson.Deserialize<MGoogle.GetProfileResponse>(s);
+        MGoogle.ProfileResponse info = NewtonsoftJson.Deserialize<MGoogle.ProfileResponse>(s);
 
         if (info.sub is null)
             return null;

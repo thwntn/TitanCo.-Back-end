@@ -5,15 +5,15 @@ public class ProductDatatransfomer
     public class Create
     {
         [JsonRequired]
-        public string name;
+        public string Name { get; set; }
 
         [JsonRequired]
-        public int price;
+        public int Price { get; set; }
 
         [JsonRequired]
-        public string description;
+        public string Description { get; set; }
 
         [JsonRequired]
-        public double sale;
+        public double Sale { get; set; }
     }
 }

@@ -1,12 +1,14 @@
 namespace ReferenceService;
 
-public class PaymentService(DatabaseContext databaseContext) : IPayment
+public class PaymentService(DatabaseContext databaseContext, IJwt jwtService) : IPayment
 {
     private readonly DatabaseContext _databaseContext = databaseContext;
+    private readonly IJwt _jwtService = jwtService;
 
     public Payment Create(PaymentDataTransfomer.Create create)
     {
-        Payment payment = new(create.name);
+        Infomation infomation = _jwtService.Infomation();
+        Payment payment = new(create.Name, DateTime.Now) { ProfileId = infomation.profileId };
 
         _databaseContext.Add(payment);
         _databaseContext.SaveChanges();
@@ -15,24 +17,28 @@ public class PaymentService(DatabaseContext databaseContext) : IPayment
 
     public async Task<Payment> AddImage(Guid paymentId, IFormFile file)
     {
-        var payment =
-            _databaseContext.Payment.Find(paymentId) ?? throw new HttpException(400, MessageDefine.NOT_FOUND_PAYMENT);
+        IEnumerable<Guid> profileIds = _jwtService.AccountSystem().Select(account => account.Profile.Id);
+        Payment payment =
+            _databaseContext.Payment.FirstOrDefault(payment =>
+                payment.Id == paymentId && profileIds.Contains(payment.ProfileId)
+            ) ?? throw new HttpException(400, MessageContants.NOT_FOUND_PAYMENT);
 
-        var save = await Reader.Save(file, string.Empty);
-        payment.Image = save.GetFileName();
+        MStream.Save save = await Reader.Save(file, string.Empty);
+        payment.Image = Reader.CreateURL(save.GetFileName());
 
         _databaseContext.Update(payment);
         _databaseContext.SaveChanges();
 
-        payment.Image = Reader.CreateURL(payment.Image);
         return payment;
     }
 
-    public List<Payment> List()
+    public IEnumerable<Payment> List()
     {
-        var payments = _databaseContext.Payment.ToList();
-        payments.ForEach(item => item.Image = Reader.CreateURL(item.Image));
+        IEnumerable<Guid> profileIds = _jwtService.AccountSystem().Select(account => account.Profile.Id);
 
+        IEnumerable<Payment> payments = _databaseContext.Payment.Where(payment =>
+            profileIds.Contains(payment.ProfileId)
+        );
         return payments;
     }
 }

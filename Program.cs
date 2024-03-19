@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Identity;
-
 namespace Application;
 
 public class Program
@@ -15,8 +13,15 @@ public class Program
 
         app.UseCors(nameof(Policy.Cors));
         app.MapHub<MapHub>(string.Empty);
+
+        app.UseSwagger();
+        app.UseSwaggerUI(options =>
+            options.SwaggerEndpoint(Environment.GetEnvironmentVariable(nameof(EnvironmentKey.Swagger)), string.Empty)
+        );
+
         app.UseAuthentication();
         app.UseAuthorization();
+
         app.Run(Environment.GetEnvironmentVariable(nameof(EnvironmentKey.Host)));
     }
 }

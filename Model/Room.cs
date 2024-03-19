@@ -2,12 +2,12 @@ namespace ReferenceModel;
 
 public class MRoom
 {
-    public class Room(string userId, string friendId)
+    public class Room(string accountId, string friendId)
     {
-        private readonly string _userId = userId;
+        private readonly string _accountId = accountId;
         private readonly List<string> _listens = [friendId];
 
-        public string GetUserId() => _userId;
+        public string GetaccountId() => _accountId;
 
         public List<string> GetListens() => _listens;
     }

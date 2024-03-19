@@ -3,6 +3,7 @@ namespace ReferenceDatabase;
 public class Google
 {
     [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public string Id { get; set; }
 
     [Required]
@@ -11,9 +12,6 @@ public class Google
     [Required]
     public string Picture { get; set; }
 
-    [Required]
-    public Profile Profile { get; set; }
-
-    [ForeignKey(nameof(ProfileId))]
-    public string ProfileId { get; set; }
+    [ForeignKey(nameof(accountId))]
+    public string accountId { get; set; }
 }

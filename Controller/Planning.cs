@@ -2,29 +2,28 @@ namespace ReferenceController;
 
 [ApiController]
 [Route(nameof(Planning))]
-public class Planning(IPlanning planningService, IJwt jwtService) : Controller
+public class Planning(IPlanning planningService) : Controller
 {
     private readonly IPlanning _planningService = planningService;
-    private readonly IJwt _jwtService = jwtService;
 
     [HttpGet("{weekOfYear}")]
     public IActionResult List([FromRoute] string weekOfYear)
     {
-        var plannings = _planningService.List(_jwtService.ReadToken(Request).userId, weekOfYear);
+        var plannings = _planningService.List(weekOfYear);
         return Ok(plannings);
     }
 
     [HttpPost]
     public IActionResult Create([FromBody] PlanningDataTransformer.Create create)
     {
-        var planning = _planningService.Create(_jwtService.ReadToken(Request).userId, create);
+        var planning = _planningService.Create(create);
         return Ok(planning);
     }
 
     [HttpDelete("{planningId}")]
-    public IActionResult Remove([FromRoute] string planningId)
+    public IActionResult Remove([FromRoute] Guid planningId)
     {
-        var message = _planningService.Remove(_jwtService.ReadToken(Request).userId, planningId);
+        var message = _planningService.Remove(planningId);
         return Ok(message);
     }
 }

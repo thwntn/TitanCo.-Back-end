@@ -4,6 +4,7 @@ public class PaymentDataTransfomer
 {
     public class Create
     {
-        public string name;
+        [JsonRequired]
+        public string Name { get; set; }
     }
 }

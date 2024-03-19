@@ -5,25 +5,52 @@ public class InvoiceDatatransfomer
     public class Create
     {
         [JsonRequired]
-        public string description;
+        public string Code { get; set; }
+
+        [JsonRequired]
+        public string Description { get; set; }
+
+        [JsonRequired]
+        public Guid DiscountId { get; set; }
+
+        [JsonRequired]
+        public List<ProductCreate> InvoiceProducts { get; set; }
+
+        [JsonRequired]
+        public Guid ProfileId { get; set; }
+
+        [JsonRequired]
+        public Guid CustomerId { get; set; }
+
+        [JsonRequired]
+        public Guid PaymentId { get; set; }
+    }
+
+    public class ProductCreate
+    {
+        [JsonRequired]
+        public Guid ProductId { get; set; }
+
+        [JsonRequired]
+        public int Quanlity { get; set; }
     }
 
     public class ChangeDesctiption
     {
         [JsonRequired]
-        public string desctiption;
+        public string Desctiption { get; set; }
     }
 
     public class ChangeCustomer
     {
         [JsonRequired]
-        public Guid customerId;
+        public Guid CustomerId { get; set; }
     }
 
     public class ChangePaymentMethod
     {
         [JsonRequired]
-        public Guid paymentMethod;
+        public Guid PaymentMethod { get; set; }
     }
 
     public class RemoveProduct { }
@@ -31,12 +58,12 @@ public class InvoiceDatatransfomer
     public class AddProduct
     {
         [JsonRequired]
-        public Guid productId;
+        public Guid ProductId { get; set; }
 
         [JsonRequired]
-        public Guid invoiceId;
+        public Guid InvoiceId { get; set; }
 
         [JsonRequired]
-        public int quanlity;
+        public int Quanlity { get; set; }
     }
 }

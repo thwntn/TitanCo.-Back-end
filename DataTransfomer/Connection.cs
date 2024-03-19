@@ -4,6 +4,6 @@ public class ConnectionDataTransformer
 {
     public class Init
     {
-        public string userId;
+        public string accountId;
     }
 }

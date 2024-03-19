@@ -2,16 +2,15 @@ namespace ReferenceController;
 
 [ApiController]
 [Route(nameof(Trash))]
-public class Trash(ITrash trashService, IJwt jwtService) : Controller
+public class Trash(ITrash trashService) : Controller
 {
     private readonly ITrash _trashService = trashService;
-    private readonly IJwt _jwtService = jwtService;
 
     [HttpGet]
     [Authorize]
     public IActionResult List()
     {
-        var list = _trashService.List(_jwtService.ReadToken(Request).userId);
+        var list = _trashService.List();
         return Ok(list);
     }
 
@@ -19,23 +18,23 @@ public class Trash(ITrash trashService, IJwt jwtService) : Controller
     [Authorize]
     public IActionResult Add([FromBody] TrashDatatransfomer.Add add)
     {
-        var stogare = _trashService.Add(_jwtService.ReadToken(Request).userId, add.stogareId);
+        var stogare = _trashService.Add(add.StogareId);
         return Ok(stogare);
     }
 
     [Authorize]
     [HttpPatch(nameof(Restore) + "/{stogareId}")]
-    public IActionResult Restore([FromRoute] string stogareId)
+    public IActionResult Restore([FromRoute] Guid stogareId)
     {
-        var stoagre = _trashService.Restore(_jwtService.ReadToken(Request).userId, stogareId);
+        var stoagre = _trashService.Restore(stogareId);
         return Ok(stoagre);
     }
 
     [Authorize]
     [HttpDelete("/{stogareId}")]
-    public IActionResult Remove([FromRoute] string stogareId)
+    public IActionResult Remove([FromRoute] Guid stogareId)
     {
-        var message = _trashService.Remove(_jwtService.ReadToken(Request).userId, stogareId);
+        var message = _trashService.Remove(stogareId);
         return Ok(message);
     }
 }

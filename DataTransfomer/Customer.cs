@@ -3,11 +3,11 @@ public class CustomerDataTransfomer
     public class Create
     {
         [JsonRequired]
-        public string name;
+        public string Name { get; set; }
 
-        public string fullName;
+        public string FullName { get; set; }
 
         [JsonRequired]
-        public string phone;
+        public string Phone { get; set; }
     }
 }

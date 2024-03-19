@@ -2,8 +2,11 @@ namespace ReferenceInterface;
 
 public interface IAuth
 {
-    string Code(string profileId, string code);
-    Task<Profile> Signup(AuthDataTransformer.Signup signup);
-    Task<MLogin.Info> Signin(AuthDataTransformer.Signin signin);
+    Task<Account> Signup(AuthDataTransformer.Signup signup);
+    bool VerifyEmail(AuthDataTransformer.VerifyEmail verifyEmail);
+    Task<Account> SigninWithPassword(AuthDataTransformer.Signin signin);
+    Account ConfirmCode(Guid accountId, string code);
     Task<Profile> LoginGoogle(string authCode);
+    string ChangePassword(AuthDataTransformer.ChangePassword changePassword);
+    Task<string> ResetPassword(string email);
 }

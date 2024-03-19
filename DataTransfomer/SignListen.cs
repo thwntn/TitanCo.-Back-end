@@ -4,12 +4,12 @@ public class SignListenDataTransformer
 {
     public class Sign
     {
-        public string userId;
-        public string friendId;
+        public string AccountId { get; set; }
+        public string FriendId { get; set; }
     }
 
     public class Clear
     {
-        public string userId;
+        public string AccountId { get; set; }
     }
 }

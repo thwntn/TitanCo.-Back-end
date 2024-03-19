@@ -22,11 +22,12 @@ public class Product
     public double Sale { get; set; }
 
     [ForeignKey(nameof(ProfileId))]
-    public string ProfileId { get; set; }
+    public Guid ProfileId { get; set; }
 
     public Profile Profile { get; set; }
 
     public ICollection<ImageProduct> ImageProducts { get; set; }
 
+    [DeleteBehavior(DeleteBehavior.NoAction)]
     public ICollection<InvoiceProduct> InvoiceProducts { get; set; }
 }

@@ -5,33 +5,33 @@ public class PlanningDataTransformer
     public class Create
     {
         [JsonRequired]
-        public string weekOfYear;
+        public string WeekOfYear { get; set; }
 
         [JsonRequired]
-        public string dateTime;
+        public string DateTime { get; set; }
 
         [JsonRequired]
-        public string name;
+        public string Name { get; set; }
 
         [JsonRequired]
-        public string hour;
+        public string Hour { get; set; }
 
         [JsonRequired]
-        public string from;
+        public string From { get; set; }
 
         [JsonRequired]
-        public string to;
+        public string To { get; set; }
 
         [JsonRequired]
-        public string day;
+        public string Day { get; set; }
 
         [JsonRequired]
-        public string color;
+        public string Color { get; set; }
 
         [JsonRequired]
-        public string setNotification;
+        public string SetNotification { get; set; }
 
         [JsonRequired]
-        public string setEmail;
+        public string SetEmail { get; set; }
     }
 }

@@ -1,11 +1,10 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace ReferenceDatabase;
 
 public class Stogare
 {
     [Key]
-    public string Id { get; set; }
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public Guid Id { get; set; }
 
     [Required]
     public DateTime Created { get; set; }
@@ -17,7 +16,7 @@ public class Stogare
     public string MapName { get; set; }
 
     [Required]
-    public string Parent { get; set; }
+    public Guid Parent { get; set; }
 
     [Required]
     public string Url { get; set; }
@@ -35,12 +34,13 @@ public class Stogare
 
     [AllowNull]
     [ForeignKey(nameof(GroupId))]
-    public string GroupId { get; set; }
+    public Guid GroupId { get; set; }
 
+    [DeleteBehavior(DeleteBehavior.Restrict)]
     public Group Group { get; set; }
 
     [ForeignKey(nameof(ProfileId))]
-    public string ProfileId { get; set; }
+    public Guid ProfileId { get; set; }
 
     public Profile Profile { get; set; }
 }

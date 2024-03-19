@@ -1,38 +1,43 @@
 namespace ReferenceService;
 
-public class PlanningService(DatabaseContext databaseContext, INotification notificationService, IMail mailService)
-    : IPlanning
+public class PlanningService(
+    DatabaseContext databaseContext,
+    INotification notificationService,
+    IMail mailService,
+    IJwt jwtService
+) : IPlanning
 {
     private readonly DatabaseContext _databaseContext = databaseContext;
     private readonly INotification _notificationService = notificationService;
+    private readonly IJwt _jwtService = jwtService;
     private readonly IMail _mailService = mailService;
 
-    public List<Planning> List(string profileId, string weekOfYear)
+    public IEnumerable<Planning> List(string weekOfYear)
     {
-        var plannings = _databaseContext
-            .Planning.Where(planning => planning.ProfileId == profileId && planning.WeekOfYear == weekOfYear)
-            .ToList();
+        var plannings = _databaseContext.Planning.Where(planning =>
+            planning.ProfileId == _jwtService.Infomation().profileId && planning.WeekOfYear == weekOfYear
+        );
+
         return plannings;
     }
 
-    public Planning Create(string profileId, PlanningDataTransformer.Create create)
+    public Planning Create(PlanningDataTransformer.Create create)
     {
         Planning planning = NewtonsoftJson.Map<Planning>(create);
-        planning.Id = Cryptography.RandomGuid();
         planning.Created = DateTime.Now;
-        planning.ProfileId = profileId;
+        planning.ProfileId = _jwtService.Infomation().profileId;
 
         _databaseContext.Add(planning);
         _databaseContext.SaveChanges();
         return planning;
     }
 
-    public string Remove(string profileId, string planningId)
+    public string Remove(Guid planningId)
     {
         var planning =
             _databaseContext.Planning.FirstOrDefault(planning =>
-                planning.Id == planningId && planning.ProfileId == profileId
-            ) ?? throw new HttpException(400, MessageDefine.NOT_FOUND_PLANNING);
+                planning.Id == planningId && planning.ProfileId == _jwtService.Infomation().profileId
+            ) ?? throw new HttpException(400, MessageContants.NOT_FOUND_PLANNING);
 
         _databaseContext.Remove(planning);
         _databaseContext.SaveChanges();

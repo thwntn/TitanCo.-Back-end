@@ -3,7 +3,8 @@ namespace ReferenceDatabase;
 public class Group
 {
     [Key]
-    public string Id { get; set; }
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public Guid Id { get; set; }
 
     [Required]
     public string Name { get; set; }
@@ -11,12 +12,12 @@ public class Group
     [Required]
     public string Image { get; set; }
 
-    public ICollection<Stogare> DataGroups { get; set; }
+    public ICollection<Stogare> Stogares { get; set; }
 
     public ICollection<GroupMember> Members { get; set; }
 
     [ForeignKey(nameof(ProfileId))]
-    public string ProfileId { get; set; }
+    public Guid ProfileId { get; set; }
 
     public Profile Profile { get; set; }
 }

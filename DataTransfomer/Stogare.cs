@@ -5,58 +5,58 @@ public class StogareDataTransfomer
     public class CreateFolder
     {
         [JsonRequired]
-        public string name;
+        public string Name { get; set; }
 
-        public string groupId;
+        public Guid GroupId { get; set; }
     }
 
     public class Move
     {
         [JsonRequired]
-        public string stogareId;
+        public Guid StogareId { get; set; }
 
         [JsonRequired]
-        public string destinationId;
+        public Guid DestinationId { get; set; }
     }
 
     public class Rename
     {
         [JsonRequired]
-        public string name;
+        public string Name { get; set; }
     }
 
     public class Stogare
     {
         [JsonRequired]
-        public int id;
+        public int Id { get; set; }
 
         [JsonRequired]
-        public DateTime created;
+        public DateTime Created { get; set; }
 
         [JsonRequired]
-        public string displayName;
+        public string DisplayName { get; set; }
 
         [JsonRequired]
-        public string mapName;
+        public string MapName { get; set; }
 
         [JsonRequired]
-        public string parent;
+        public string Parent { get; set; }
 
         [JsonRequired]
-        public StogareStatus status;
+        public StogareStatus Status { get; set; }
 
         [JsonRequired]
-        public StogareType type;
+        public StogareType Type { get; set; }
 
         [JsonRequired]
-        public string thumbnail;
+        public string Thumbnail { get; set; }
 
         [JsonRequired]
-        public string url;
+        public string Url { get; set; }
 
         [JsonRequired]
-        public int userId;
+        public int AccountId { get; set; }
 
-        public string groupId;
+        public Guid GroupId { get; set; }
     }
 }

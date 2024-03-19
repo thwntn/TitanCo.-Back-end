@@ -1,27 +1,36 @@
 namespace ReferenceService;
 
-public class TrashService(DatabaseContext databaseContext) : ITrash
+public class TrashService(DatabaseContext databaseContext, IJwt jwtService)
+    : ITrash
 {
     private readonly DatabaseContext _databaseContext = databaseContext;
+    private readonly IJwt _jwtService = jwtService;
 
-    public List<Stogare> List(string profileId)
+    public IEnumerable<Stogare> List()
     {
         var user =
             _databaseContext
                 .Profile.Include(profile => profile.Stogares)
-                .FirstOrDefault(profile => profile.Id == profileId)
-            ?? throw new HttpException(400, MessageDefine.NOT_FOUND_USER);
+                .FirstOrDefault(profile =>
+                    profile.Id == _jwtService.Infomation().profileId
+                )
+            ?? throw new HttpException(400, MessageContants.NOT_FOUND_ACCOUNT);
 
-        var stogares = user.Stogares.Where(stogare => stogare.Status == StogareStatus.Trash).ToList();
+        var stogares = user.Stogares.Where(stogare =>
+            stogare.Status == StogareStatus.Trash
+        );
+
         return stogares;
     }
 
-    public Stogare Add(string profileId, string stogareId)
+    public Stogare Add(Guid stogareId)
     {
         var stogare =
             _databaseContext.Stogare.FirstOrDefault(stogare =>
-                stogare.Id == stogareId && stogare.ProfileId == profileId
-            ) ?? throw new HttpException(400, MessageDefine.NOT_FOUND_STOGARE);
+                stogare.Id == stogareId
+                && stogare.ProfileId == _jwtService.Infomation().profileId
+            )
+            ?? throw new HttpException(400, MessageContants.NOT_FOUND_STOGARE);
 
         stogare.Status = StogareStatus.Trash;
         _databaseContext.Stogare.Update(stogare);
@@ -30,12 +39,14 @@ public class TrashService(DatabaseContext databaseContext) : ITrash
         return stogare;
     }
 
-    public Stogare Restore(string profileId, string stogareId)
+    public Stogare Restore(Guid stogareId)
     {
         var stogare =
             _databaseContext.Stogare.FirstOrDefault(stogare =>
-                stogare.Id == stogareId && stogare.ProfileId == profileId
-            ) ?? throw new HttpException(400, MessageDefine.NOT_FOUND_STOGARE);
+                stogare.Id == stogareId
+                && stogare.ProfileId == _jwtService.Infomation().profileId
+            )
+            ?? throw new HttpException(400, MessageContants.NOT_FOUND_STOGARE);
 
         stogare.Status = StogareStatus.Normal;
         _databaseContext.Update(stogare);
@@ -44,12 +55,14 @@ public class TrashService(DatabaseContext databaseContext) : ITrash
         return stogare;
     }
 
-    public string Remove(string profileId, string stogareId)
+    public string Remove(Guid stogareId)
     {
         var stogare =
             _databaseContext.Stogare.FirstOrDefault(stogare =>
-                stogare.Id == stogareId && stogare.ProfileId == profileId
-            ) ?? throw new HttpException(400, MessageDefine.NOT_FOUND_STOGARE);
+                stogare.Id == stogareId
+                && stogare.ProfileId == _jwtService.Infomation().profileId
+            )
+            ?? throw new HttpException(400, MessageContants.NOT_FOUND_STOGARE);
 
         _databaseContext.Remove(stogare);
         _databaseContext.SaveChanges();

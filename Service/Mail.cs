@@ -1,5 +1,3 @@
-using System.Net.Mail;
-
 namespace ReferenceService;
 
 public class MailService() : IMail
@@ -11,7 +9,7 @@ public class MailService() : IMail
         nameof(EnvironmentKey.MailAppPasword)
     );
 
-    private void SendMail(string subject, string body, string email)
+    private async Task SendMail(string subject, string body, string email)
     {
         Logger.Log(email);
         try
@@ -36,7 +34,7 @@ public class MailService() : IMail
                     Credentials = basicauthenticationinfo,
                     DeliveryMethod = SmtpDeliveryMethod.Network
                 };
-            client.Send(msg);
+            await client.SendMailAsync(msg);
         }
         catch (Exception ex)
         {
@@ -44,21 +42,21 @@ public class MailService() : IMail
         }
     }
 
-    public async void SendCode(string toEmail, string code)
+    public async Task SendCode(string toEmail, string code)
     {
         var streamReader = new StreamReader(Directory.GetCurrentDirectory() + "/Common/Metadata/FormMessage.html");
         string body = await streamReader.ReadToEndAsync();
         streamReader.Close();
         body = body.Replace("___CODE___", code);
-        SendMail("Mã xác nhận", body, toEmail);
+        await SendMail("Mã xác nhận", body, toEmail);
     }
 
-    public async void SendExpirePlanning(string toEmail, string code)
+    public async Task SendExpirePlanning(string toEmail, string code)
     {
         var streamReader = new StreamReader(Directory.GetCurrentDirectory() + "/Common/Metadata/FormMessage.html");
         string body = await streamReader.ReadToEndAsync();
         streamReader.Close();
         body = body.Replace("___CODE___", code);
-        SendMail("Mã xác nhận", body, toEmail);
+        await SendMail("Mã xác nhận", body, toEmail);
     }
 }

@@ -1,8 +1,8 @@
 namespace ReferenceModel;
 
-public class ClientHub(string userId, string connectionId, IClientProxy clientProxy)
+public class ClientHub(string accountId, string connectionId, IClientProxy clientProxy)
 {
     public IClientProxy clientProxy = clientProxy;
     public string connectionId = connectionId;
-    public string userId = userId;
+    public string accountId = accountId;
 }

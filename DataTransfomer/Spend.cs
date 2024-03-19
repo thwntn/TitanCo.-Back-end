@@ -5,12 +5,12 @@ public class SpendDataTransformer
     public class Create
     {
         [JsonRequired]
-        public string name;
+        public string Name { get; set; }
 
         [JsonRequired]
-        public string dateTime;
+        public string DateTime { get; set; }
 
         [JsonRequired]
-        public string amount;
+        public string Amount { get; set; }
     }
 }

@@ -2,29 +2,28 @@ namespace ReferenceController;
 
 [ApiController]
 [Route(nameof(Spend))]
-public class Spend(ISpend spendService, IJwt jwtService) : Controller
+public class Spend(ISpend spendService) : Controller
 {
     private readonly ISpend _spendService = spendService;
-    private readonly IJwt _jwtService = jwtService;
 
     [HttpGet("{dateTime}")]
     public IActionResult List([FromRoute] string dateTime)
     {
-        var spends = _spendService.List(_jwtService.ReadToken(Request).userId, dateTime);
+        var spends = _spendService.List(dateTime);
         return Ok(spends);
     }
 
     [HttpPost]
     public IActionResult Create([FromBody] SpendDataTransformer.Create create)
     {
-        var spend = _spendService.Create(_jwtService.ReadToken(Request).userId, create);
+        var spend = _spendService.Create(create);
         return Ok(spend);
     }
 
     [HttpDelete("{spendId}")]
-    public IActionResult Remove([FromRoute] string spendId)
+    public IActionResult Remove([FromRoute] Guid spendId)
     {
-        var message = _spendService.Remove(_jwtService.ReadToken(Request).userId, spendId);
+        var message = _spendService.Remove(spendId);
         return Ok(message);
     }
 }

@@ -23,24 +23,24 @@ public class NoteDatatransformer
     public class Update
     {
         [JsonRequired]
-        public string id;
+        public Guid Id { get; set; }
 
         [JsonRequired]
-        public DateTime created;
+        public DateTime Created { get; set; }
 
         [JsonRequired]
-        public string name;
+        public string Name { get; set; }
 
         [JsonRequired]
-        public string description;
+        public string Description { get; set; }
 
         [JsonRequired]
-        public StatusNote status;
+        public StatusNote Status { get; set; }
 
         [JsonRequired]
-        public string content;
+        public string Content { get; set; }
 
         [JsonRequired]
-        public string profileId;
+        public Guid ProfileId { get; set; }
     }
 }

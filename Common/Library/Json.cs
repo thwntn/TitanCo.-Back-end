@@ -14,9 +14,7 @@ public class NewtonsoftJson
             }
         );
 
-    public static T Deserialize<T>(string json)
-        where T : new() => JsonConvert.DeserializeObject<T>(json);
+    public static T Deserialize<T>(string json) => JsonConvert.DeserializeObject<T>(json);
 
-    public static T Map<T>(object data)
-        where T : new() => Deserialize<T>(Serialize(data));
+    public static T Map<T>(object data) => Deserialize<T>(Serialize(data));
 }

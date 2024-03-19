@@ -4,5 +4,5 @@ public interface IWSManager
 {
     void Sign(SignListenDataTransformer.Sign signListenDataTransformer);
     void Remove(SignListenDataTransformer.Sign sign);
-    void Chat(string userId);
+    void Chat(string accountId);
 }

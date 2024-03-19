@@ -2,32 +2,31 @@ namespace ReferenceController;
 
 [ApiController]
 [Route(nameof(Notification))]
-public class Notification(INotification notificationService, IJwt jwtService) : Controller
+public class Notification(INotification notificationService) : Controller
 {
     private readonly INotification _notificationService = notificationService;
-    private readonly IJwt _jwtService = jwtService;
 
     [Authorize]
     [HttpGet]
     public IActionResult List()
     {
-        var notifications = _notificationService.List(_jwtService.ReadToken(Request).userId);
+        var notifications = _notificationService.List();
         return Ok(notifications);
     }
 
     [Authorize]
     [HttpPatch(nameof(Read) + "/{notificationId}")]
-    public IActionResult Read([FromRoute] string notificationId)
+    public IActionResult Read([FromRoute] Guid notificationId)
     {
-        var read = _notificationService.Read(_jwtService.ReadToken(Request).userId, notificationId);
+        var read = _notificationService.Read(notificationId);
         return Ok(read);
     }
 
     [Authorize]
     [HttpPatch(nameof(Handle) + "/{notificationId}")]
-    public IActionResult Handle([FromRoute] string notificationId)
+    public IActionResult Handle([FromRoute] Guid notificationId)
     {
-        var handle = _notificationService.Handle(_jwtService.ReadToken(Request).userId, notificationId);
+        var handle = _notificationService.Handle(notificationId);
         return Ok(handle);
     }
 }

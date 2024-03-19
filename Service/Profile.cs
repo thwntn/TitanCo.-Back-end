@@ -1,70 +1,89 @@
 namespace ReferenceService;
 
-public class ProfileService(DatabaseContext databaseContext, IJwt jwtService) : IProfile
+public class ProfileService(DatabaseContext databaseContext, IJwt jwtService)
+    : IProfile
 {
     private readonly DatabaseContext _databaseContext = databaseContext;
     private readonly IJwt _jwtService = jwtService;
 
-    public List<Profile> List()
+    public IEnumerable<Profile> List()
     {
-        var profiles = _databaseContext.Profile.ToList();
+        IEnumerable<Profile> profiles = _databaseContext.Profile.AsEnumerable();
         return profiles;
     }
 
-    public Profile Info(string profileId)
+    public Account Info()
     {
-        var profile =
-            _databaseContext.Profile.FirstOrDefault(profile => profile.Id == profileId)
-            ?? throw new HttpException(400, MessageDefine.NOT_FOUND_USER);
-
-        return profile;
+        Account account = _jwtService.Account();
+        return account;
     }
 
-    public Profile Update(string profileId, ProfileDataTransfromer.Update update)
+    public Account GeAccoutWithRole(Guid accountId)
     {
-        var profile =
-            _databaseContext.Profile.FirstOrDefault(record => record.Id == profileId)
-            ?? throw new HttpException(400, MessageDefine.NOT_FOUND_USER);
+        Account account =
+            _databaseContext
+                .Account.Include(account => account.Profile)
+                .Include(account => account.RoleAccounts)
+                .ThenInclude(roleAccount => roleAccount.Role)
+                .FirstOrDefault(account => account.Id == accountId)
+            ?? throw new HttpException(400, MessageContants.NOT_FOUND_ACCOUNT);
 
-        profile.Avatar = update.avatar;
-        profile.Name = update.name;
-
-        _databaseContext.Update(profile);
-
-        return profile;
+        return account;
     }
 
-    public async Task<MLogin.Info> ChangeAvatar(IFormFile file, string profileId)
+    public Account Update(ProfileDataTransfromer.Update update)
     {
-        var profile =
-            _databaseContext.Profile.FirstOrDefault(profile => profile.Id == profileId)
-            ?? throw new HttpException(400, MessageDefine.NOT_FOUND_USER);
+        var account = _jwtService.Account();
+
+        account.Profile.Name = update.Name;
+        account.Profile.Phone = update.Phone;
+        account.Profile.Address = update.Address;
+
+        _databaseContext.Update(account);
+        account.Token = _jwtService.GenerateToken(
+            account.Profile.Id,
+            account.Id,
+            account.ParentAccountId
+        );
+
+        return account;
+    }
+
+    public async Task<Account> ChangeAvatar(IFormFile file)
+    {
+        var account = _jwtService.Account();
 
         MStream.Save save = await Reader.Save(file, string.Empty);
-        profile.Avatar = Reader.CreateURL(save.GetPath());
+        account.Profile.Avatar = Reader.CreateURL(save.GetPath());
 
-        MLogin.Info info = NewtonsoftJson.Map<MLogin.Info>(profile);
-        info.token = _jwtService.GenerateToken(profile.Id.ToString());
+        Account info = NewtonsoftJson.Map<Account>(account);
+        info.Token = _jwtService.GenerateToken(
+            account.Profile.Id,
+            account.Id,
+            account.ParentAccountId
+        );
 
-        _databaseContext.Update(profile);
+        _databaseContext.Update(account);
         _databaseContext.SaveChanges();
 
         return info;
     }
 
-    public async Task<MLogin.Info> ChangeCoverPicture(IFormFile file, string profileId)
+    public async Task<Account> ChangeCoverPicture(IFormFile file)
     {
-        var profile =
-            _databaseContext.Profile.FirstOrDefault(profile => profile.Id == profileId)
-            ?? throw new HttpException(400, MessageDefine.NOT_FOUND_USER);
+        var account = _jwtService.Account();
 
         MStream.Save save = await Reader.Save(file, string.Empty);
-        profile.CoverPicture = Reader.CreateURL(save.GetPath());
+        account.Profile.CoverPicture = Reader.CreateURL(save.GetPath());
 
-        MLogin.Info info = NewtonsoftJson.Map<MLogin.Info>(profile);
-        info.token = _jwtService.GenerateToken(profile.Id.ToString());
+        Account info = NewtonsoftJson.Map<Account>(account);
+        info.Token = _jwtService.GenerateToken(
+            account.Profile.Id,
+            account.Id,
+            account.ParentAccountId
+        );
 
-        _databaseContext.Update(profile);
+        _databaseContext.Update(account);
         _databaseContext.SaveChanges();
 
         return info;

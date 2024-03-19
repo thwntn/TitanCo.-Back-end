@@ -4,7 +4,7 @@ public class TrashDatatransfomer
 {
     public class Add
     {
-        public string stogareId;
+        public Guid StogareId { get; set; }
     }
 
     public class Restore : Add { }

@@ -4,7 +4,6 @@ public class Startup
 {
     public static void Configure(WebApplicationBuilder builder)
     {
-        // @Cors
         builder.Services.AddCors(setup =>
             setup.AddPolicy(
                 nameof(Policy.Cors),
@@ -12,7 +11,6 @@ public class Startup
             )
         );
 
-        // @Database Context
         builder.Services.AddDbContext<DatabaseContext>(options =>
         {
             options.UseSqlServer(
@@ -21,17 +19,14 @@ public class Startup
             );
         });
 
-        // @Filter Exception
         builder.Services.AddControllers(options => options.Filters.Add<ExceptionFilter>());
 
-        // @Json
         builder
             .Services.AddControllers()
             .AddNewtonsoftJson(options =>
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
             );
 
-        // @Jwt
         builder
             .Services.AddAuthentication(configs =>
             {
@@ -65,22 +60,29 @@ public class Startup
                 }
             );
 
-        // @Config Transfrorm
         builder.Services.Configure<FormOptions>(options => options.MultipartBodyLengthLimit = long.MaxValue);
         builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = long.MaxValue);
 
-        // @Logger
-        builder.Services.AddLogging(options => options.AddFilter(nameof(Microsoft), LogLevel.Information));
+        builder.Services.AddLogging(options => options.AddFilter(nameof(Microsoft), LogLevel.Warning));
 
-        // @Signalr
         builder.Services.AddSignalR().AddNewtonsoftJsonProtocol();
 
-        // @Roles & Manager User
-        builder
-            .Services.AddDefaultIdentity<IdentityUser>()
-            .AddRoles<IdentityRole>()
-            .AddEntityFrameworkStores<DatabaseContext>()
-            .AddDefaultTokenProviders();
+        builder.Services.AddSwaggerGen(options =>
+        {
+            options.SwaggerDoc(Environment.GetEnvironmentVariable(nameof(EnvironmentKey.VersionSwagger)), new());
+            options.AddSecurityDefinition(
+                Environment.GetEnvironmentVariable(nameof(EnvironmentKey.TokenScheme)),
+                new()
+            );
+            options.CustomSchemaIds(scheme =>
+                scheme.FullName.Replace(
+                    Environment.GetEnvironmentVariable(nameof(EnvironmentKey.SwaggerNameReplace)),
+                    Environment.GetEnvironmentVariable(nameof(EnvironmentKey.SwaggerNameTo))
+                )
+            );
+        });
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddControllers();
 
         Scoped.Injection(builder.Services);
         CronJob.Configure(builder);

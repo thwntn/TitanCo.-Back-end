@@ -1,27 +1,34 @@
 namespace ReferenceService;
 
-public class StogareService(DatabaseContext databaseContext, IWSConnection connectionService, ITrash trashService)
-    : IStogare
+public class StogareService(
+    DatabaseContext databaseContext,
+    IWSConnection connectionService,
+    ITrash trashService,
+    IJwt jwtService
+) : IStogare
 {
     private readonly DatabaseContext _databaseContext = databaseContext;
     private readonly IWSConnection _connectionService = connectionService;
+    private readonly IJwt _jwtService = jwtService;
     private readonly ITrash _trashService = trashService;
     private readonly long _sizeStogare = long.Parse(
         Environment.GetEnvironmentVariable(nameof(EnvironmentKey.SizeStogare))
     );
 
-    public Stogare CreateFolder(string profileId, StogareDataTransfomer.CreateFolder createFolder, string stogareId)
+    public Stogare CreateFolder(
+        StogareDataTransfomer.CreateFolder createFolder,
+        Guid stogareId
+    )
     {
-        // bool permission = ValidPermission(userId, stogareId);
+        // bool permission = ValidPermission(accountId, stogareId);
         // if (permission is false && stogareId is not -1)
         //     throw new ForbiddenException();
 
         Stogare stogare =
             new()
             {
-                Id = Cryptography.RandomGuid(),
                 Created = DateTime.Now,
-                DisplayName = createFolder.name,
+                DisplayName = createFolder.Name,
                 Url = string.Empty,
                 Parent = stogareId,
                 MapName = string.Empty,
@@ -29,11 +36,11 @@ public class StogareService(DatabaseContext databaseContext, IWSConnection conne
                 Status = StogareStatus.Normal,
                 Thumbnail = string.Empty,
                 Size = 0,
-                ProfileId = profileId
+                ProfileId = _jwtService.Infomation().profileId
             };
 
-        if (createFolder.groupId is null)
-            stogare.GroupId = createFolder.groupId;
+        if (createFolder.GroupId == Guid.Empty)
+            stogare.GroupId = createFolder.GroupId;
 
         _databaseContext.Add(stogare);
         _databaseContext.SaveChanges();
@@ -42,26 +49,26 @@ public class StogareService(DatabaseContext databaseContext, IWSConnection conne
         return stogare;
     }
 
-    public List<Stogare> Folders(string profileId)
+    public IEnumerable<Stogare> Folders()
     {
-        var stogares = _databaseContext
-            .Stogare.Where(stogare =>
-                stogare.Type == StogareType.Folder
-                && stogare.Status == StogareStatus.Normal
-                && stogare.ProfileId == profileId
-            )
-            .ToList();
+        IQueryable<Stogare> stogares = _databaseContext.Stogare.Where(stogare =>
+            stogare.Type == StogareType.Folder
+            && stogare.Status == StogareStatus.Normal
+            && stogare.ProfileId == _jwtService.Infomation().profileId
+        );
         return stogares;
     }
 
-    public Stogare Rename(string profileId, string stogareId, StogareDataTransfomer.Rename rename)
+    public Stogare Rename(Guid stogareId, StogareDataTransfomer.Rename rename)
     {
         var stogare =
             _databaseContext.Stogare.FirstOrDefault(stogare =>
-                stogare.Id == stogareId && stogare.ProfileId == profileId
-            ) ?? throw new HttpException(400, MessageDefine.NOT_FOUND_STOGARE);
+                stogare.Id == stogareId
+                && stogare.ProfileId == _jwtService.Infomation().profileId
+            )
+            ?? throw new HttpException(400, MessageContants.NOT_FOUND_STOGARE);
 
-        stogare.DisplayName = rename.name;
+        stogare.DisplayName = rename.Name;
         _databaseContext.Update(stogare);
         _databaseContext.SaveChanges();
 
@@ -69,37 +76,44 @@ public class StogareService(DatabaseContext databaseContext, IWSConnection conne
         return stogare;
     }
 
-    public async Task<Stogare> Upload(string profileId, IFormFile file, string stogareId)
+    public async Task<Stogare> Upload(IFormFile file, Guid stogareId)
     {
-        bool permission = ValidPermission(profileId, stogareId);
+        bool permission = ValidPermission(
+            _jwtService.Infomation().profileId,
+            stogareId
+        );
         if (permission is false)
-            throw new HttpException(403, MessageDefine.NOT_ACCEPT_ROLE);
+            throw new HttpException(403, MessageContants.NOT_ACCEPT_ROLE);
 
         var size = Reader.GetSize(file);
-        long sizeUsage = SizeUsage(profileId);
+        long sizeUsage = SizeUsage();
         if (size.GetSize() + sizeUsage >= _sizeStogare)
-            throw new HttpException(400, MessageDefine.FULL_SPACE);
+            throw new HttpException(400, MessageContants.FULL_SPACE);
 
-        // @Save & Create thumbnail
         var save = await Reader.Save(file, string.Empty);
         string thumbnail = null;
-        if (Constant.TYPE_PICTURE.Any(type => save.GetFileName().Contains(type)))
-            thumbnail = Reader.Thumbnail(Reader.ReadFile(save.GetFileName()), 10);
+        if (
+            Constant.TYPE_PICTURE.Any(type => save.GetFileName().Contains(type))
+        )
+            thumbnail = Reader.Thumbnail(
+                Reader.ReadFile(save.GetFileName()),
+                10
+            );
 
-        var stogare = new Stogare
-        {
-            Id = Cryptography.RandomGuid(),
-            MapName = save.GetFileName(),
-            Created = DateTime.Now,
-            DisplayName = save.GetKey(),
-            Url = Reader.CreateURL(save.GetPath()),
-            Parent = stogareId,
-            Type = StogareType.File,
-            Status = StogareStatus.Normal,
-            Size = save.GetSize(),
-            ProfileId = profileId,
-            Thumbnail = Reader.CreateURL(thumbnail)
-        };
+        Stogare stogare =
+            new()
+            {
+                MapName = save.GetFileName(),
+                Created = DateTime.Now,
+                DisplayName = save.GetKey(),
+                Url = Reader.CreateURL(save.GetPath()),
+                Parent = stogareId,
+                Type = StogareType.File,
+                Status = StogareStatus.Normal,
+                Size = save.GetSize(),
+                ProfileId = _jwtService.Infomation().profileId,
+                Thumbnail = Reader.CreateURL(thumbnail)
+            };
 
         _databaseContext.Add(stogare);
         _databaseContext.SaveChanges();
@@ -107,59 +121,75 @@ public class StogareService(DatabaseContext databaseContext, IWSConnection conne
         return stogare;
     }
 
-    private long SizeUsage(string profileId)
+    private long SizeUsage()
     {
         var user = _databaseContext
             .Profile.Include(user => user.Stogares)
             .Include(user => user.Groups)
-            .ThenInclude(group => group.DataGroups)
-            .FirstOrDefault(user => user.Id == profileId);
+            .ThenInclude(group => group.Stogares)
+            .FirstOrDefault(user =>
+                user.Id == _jwtService.Infomation().profileId
+            );
 
         var stogareUser = user.Stogares.Where(stogare =>
-            user.Groups.Any(group => group.DataGroups.Any(dataGroup => dataGroup.Id == stogare.Id)) is false
+            user.Groups.Any(group =>
+                group.Stogares.Any(dataGroup => dataGroup.Id == stogare.Id)
+            )
+                is false
         );
         var stogareSize = stogareUser.Sum(stogare => stogare.Size);
-        var groupSize = user.Groups.Sum(group => group.DataGroups.Sum(dataGroup => dataGroup.Size));
+        var groupSize = user.Groups.Sum(group =>
+            group.Stogares.Sum(dataGroup => dataGroup.Size)
+        );
 
         long size = groupSize + stogareSize;
         return size;
     }
 
-    public List<MStogare.StogareWithCounter> List(string profileId, string stogareId)
+    public IEnumerable<MStogare.StogareWithCounter> List(Guid stogareId)
     {
         var stogares = _databaseContext.Stogare.Where(stogare =>
-            stogare.ProfileId == profileId
+            stogare.ProfileId == _jwtService.Infomation().profileId
             && stogare.GroupId.Equals(null)
             && stogare.Status == StogareStatus.Normal
             && stogare.Parent == stogareId
         );
-        var result = FolderCounter([.. stogares]).OrderByDescending(stogare => stogare.Created).ToList();
+        var result = FolderCounter([.. stogares])
+            .OrderByDescending(stogare => stogare.Created);
         return result;
     }
 
-    public List<MStogare.StogareWithCounter> FolderCounter(List<Stogare> stogares)
+    public IEnumerable<MStogare.StogareWithCounter> FolderCounter(
+        IEnumerable<Stogare> stogares
+    )
     {
         List<Stogare> folders = [],
             files = [];
-        stogares.ForEach(item =>
+
+        foreach (var item in stogares)
         {
             if (item.Type == StogareType.Folder)
                 folders.Add(item);
             else if (item.Type == StogareType.File)
                 files.Add(item);
-        });
+        }
 
         var counter = _databaseContext
             .Stogare.ToList()
-            .Where(stogare => stogare.Status == StogareStatus.Normal && folders.Any(item => item.Id == stogare.Parent))
+            .Where(stogare =>
+                stogare.Status == StogareStatus.Normal
+                && folders.Any(item => item.Id == stogare.Parent)
+            )
             .GroupBy(item => item.Parent);
 
-        var count = counter.Select(item => new Counter<string>(
+        var count = counter.Select(item => new Counter<Guid>(
             item.Key,
             item.Count(),
             item.Sum(stogare => stogare.Size)
         ));
-        var folderWithCount = NewtonsoftJson.Map<List<MStogare.StogareWithCounter>>(folders);
+        var folderWithCount = NewtonsoftJson.Map<
+            List<MStogare.StogareWithCounter>
+        >(folders);
         foreach (var item in folderWithCount)
         {
             var find = count.FirstOrDefault(count => count.key == item.Id);
@@ -170,29 +200,37 @@ public class StogareService(DatabaseContext databaseContext, IWSConnection conne
             item.counterSize = find.size;
         }
 
-        var result = NewtonsoftJson.Map<List<MStogare.StogareWithCounter>>(files).Concat(folderWithCount).ToList();
+        var result = NewtonsoftJson
+            .Map<List<MStogare.StogareWithCounter>>(files)
+            .Concat(folderWithCount);
         return result;
     }
 
-    public List<Stogare> Recent(string profileId)
+    public IEnumerable<Stogare> Recent()
     {
         var user =
-            _databaseContext.Profile.Include(user => user.Stogares).FirstOrDefault(user => user.Id == profileId)
-            ?? throw new HttpException(400, MessageDefine.NOT_FOUND_USER);
+            _databaseContext
+                .Profile.Include(user => user.Stogares)
+                .FirstOrDefault(user =>
+                    user.Id == _jwtService.Infomation().profileId
+                )
+            ?? throw new HttpException(400, MessageContants.NOT_FOUND_ACCOUNT);
 
         var filter = user
             .Stogares.Where(item => item.Status == StogareStatus.Normal)
             .OrderByDescending(stogare => stogare.Created)
-            .Take(40)
-            .ToList();
+            .Take(40);
         return filter;
     }
 
-    public Stogare Update(string profileId, Stogare stogare)
+    public Stogare Update(Stogare stogare)
     {
-        bool permission = ValidPermission(profileId, stogare.Id);
+        bool permission = ValidPermission(
+            _jwtService.Infomation().profileId,
+            stogare.Id
+        );
         if (permission is false)
-            throw new HttpException(403, MessageDefine.NOT_ACCEPT_ROLE);
+            throw new HttpException(403, MessageContants.NOT_ACCEPT_ROLE);
 
         _databaseContext.Update(stogare);
         _databaseContext.SaveChanges();
@@ -201,18 +239,22 @@ public class StogareService(DatabaseContext databaseContext, IWSConnection conne
         return stogare;
     }
 
-    public string Remove(string profileId, string stogareId)
+    public string Remove(Guid stogareId)
     {
-        _trashService.Add(profileId, stogareId);
+        _trashService.Add(stogareId);
         RealtimeUpdate();
         return string.Empty;
     }
 
-    public MHome.Info Home(string profileId)
+    public MHome.Info Home()
     {
         var user =
-            _databaseContext.Profile.Include(user => user.Stogares).FirstOrDefault(user => user.Id == profileId)
-            ?? throw new HttpException(400, MessageDefine.NOT_FOUND_USER);
+            _databaseContext
+                .Profile.Include(user => user.Stogares)
+                .FirstOrDefault(user =>
+                    user.Id == _jwtService.Infomation().profileId
+                )
+            ?? throw new HttpException(400, MessageContants.NOT_FOUND_ACCOUNT);
 
         var counter = new Dictionary<string, MHome.Counter>();
         foreach (var item in user.Stogares)
@@ -246,46 +288,79 @@ public class StogareService(DatabaseContext databaseContext, IWSConnection conne
             }
         }
 
-        int totalFile = user.Stogares.Where(stogare => stogare.Type == StogareType.File).Count();
+        int totalFile = user
+            .Stogares.Where(stogare => stogare.Type == StogareType.File)
+            .Count();
         long totalSize = user.Stogares.Select(stogare => stogare.Size).Sum();
 
         int isOther;
-        int quanlityOther = totalFile - counter.Values.Select(item => item.quanlity).Sum();
-        long sizeOther = totalSize - counter.Values.Select(item => item.size).Sum();
-        counter.Add(nameof(isOther), new(nameof(isOther)) { quanlity = quanlityOther, size = totalSize - sizeOther });
+        int quanlityOther =
+            totalFile - counter.Values.Select(item => item.quanlity).Sum();
+        long sizeOther =
+            totalSize - counter.Values.Select(item => item.size).Sum();
+        counter.Add(
+            nameof(isOther),
+            new(nameof(isOther))
+            {
+                quanlity = quanlityOther,
+                size = totalSize - sizeOther
+            }
+        );
 
         foreach (var item in counter.Values)
-            item.percent = Convert.ToInt64(item.size / Convert.ToDouble(_sizeStogare) * 100);
+            item.percent = Convert.ToInt64(
+                item.size / Convert.ToDouble(_sizeStogare) * 100
+            );
 
-        return new MHome.Info(totalSize, totalFile, [.. counter.Values], new(_sizeStogare));
+        return new MHome.Info(
+            totalSize,
+            totalFile,
+            [.. counter.Values],
+            new(_sizeStogare)
+        );
     }
 
-    public List<Stogare> Search(string profileId, string content)
+    public IEnumerable<Stogare> Search(string content)
     {
-        var user =
-            _databaseContext.Profile.Include(user => user.Stogares).FirstOrDefault(user => user.Id == profileId)
-            ?? throw new HttpException(400, MessageDefine.NOT_FOUND_USER);
+        Profile profile =
+            _databaseContext
+                .Profile.Include(profile => profile.Stogares)
+                .FirstOrDefault(profile =>
+                    profile.Id == _jwtService.Infomation().profileId
+                )
+            ?? throw new HttpException(400, MessageContants.NOT_FOUND_ACCOUNT);
 
-        var stogares = user
-            .Stogares.Where(stogare => stogare.DisplayName.Contains(content) && stogare.Status == StogareStatus.Normal)
-            .ToList();
+        IEnumerable<Stogare> stogares = profile.Stogares.Where(stogare =>
+            stogare.DisplayName.Contains(content)
+            && stogare.Status == StogareStatus.Normal
+        );
         return stogares;
     }
 
-    public Stogare Move(string profileId, StogareDataTransfomer.Move move)
+    public Stogare Move(StogareDataTransfomer.Move move)
     {
         Logger.Json(
-            _databaseContext.Profile.Include(user => user.Stogares).FirstOrDefault(user => user.Id == profileId)
+            _databaseContext
+                .Profile.Include(user => user.Stogares)
+                .FirstOrDefault(user =>
+                    user.Id == _jwtService.Infomation().profileId
+                )
         );
         var user =
-            _databaseContext.Profile.Include(user => user.Stogares).FirstOrDefault(user => user.Id == profileId)
-            ?? throw new HttpException(400, MessageDefine.NOT_FOUND_USER);
+            _databaseContext
+                .Profile.Include(user => user.Stogares)
+                .FirstOrDefault(user =>
+                    user.Id == _jwtService.Infomation().profileId
+                )
+            ?? throw new HttpException(400, MessageContants.NOT_FOUND_ACCOUNT);
 
-        var from = user.Stogares.FirstOrDefault(item => item.Id == move.stogareId);
-        if (move.stogareId == move.destinationId)
-            throw new HttpException(403, MessageDefine.NOT_ACCEPT_ROLE);
+        var from = user.Stogares.FirstOrDefault(item =>
+            item.Id == move.StogareId
+        );
+        if (move.StogareId == move.DestinationId)
+            throw new HttpException(403, MessageContants.NOT_ACCEPT_ROLE);
 
-        from.Parent = move.destinationId;
+        from.Parent = move.DestinationId;
 
         _databaseContext.Update(from);
         _databaseContext.SaveChanges();
@@ -294,74 +369,88 @@ public class StogareService(DatabaseContext databaseContext, IWSConnection conne
         return from;
     }
 
-    public List<string> RecursiveChildren(List<string> stogares)
+    public IEnumerable<Guid> RecursiveChildren(List<Guid> stogares)
     {
         if (stogares.Count is 0)
             return [];
 
         var stogare = _databaseContext
-            .Stogare.Where(stogare => stogares.Any(item => item == stogare.Parent))
+            .Stogare.Where(stogare =>
+                stogares.Any(item => item == stogare.Parent)
+            )
             .Select(item => item.Id);
 
         return [.. stogares.Concat(RecursiveChildren([.. stogare]))];
     }
 
-    private List<string> RecusiveDirectory(string parentId, List<string> result)
+    private List<Guid> RecusiveDirectory(Guid parentId, List<Guid> result)
     {
-        if (parentId is null)
+        if (parentId == Guid.Empty)
             return result;
         else
         {
-            var stogate = _databaseContext.Stogare.FirstOrDefault(stogare => stogare.Id == parentId);
+            var stogate = _databaseContext.Stogare.FirstOrDefault(stogare =>
+                stogare.Id == parentId
+            );
             result.Add(stogate.Id);
             return RecusiveDirectory(stogate.Parent, result);
         }
     }
 
-    public List<MStogare.StogareWithLevel> Redirect(string stogareId)
+    public IEnumerable<MStogare.StogareWithLevel> Redirect(Guid stogareId)
     {
-        var result = new List<string>();
+        List<Guid> result = [];
         _ = RecusiveDirectory(stogareId, result);
         result.Reverse();
 
-        var mapperLevel = NewtonsoftJson.Map<List<MStogare.StogareWithLevel>>(
-            _databaseContext.Stogare.Where(stogare => result.Any(item => item == stogare.Id))
+        List<MStogare.StogareWithLevel> mapperLevel = NewtonsoftJson.Map<
+            List<MStogare.StogareWithLevel>
+        >(
+            _databaseContext.Stogare.Where(stogare =>
+                result.Any(item => item == stogare.Id)
+            )
         );
 
         mapperLevel.ForEach(item => item.level = result.IndexOf(item.Id));
         return mapperLevel;
     }
 
-    public List<Stogare> ListDestination(string profileId, string stogareId)
+    public IEnumerable<Stogare> ListDestination(Guid stogareId)
     {
         var user =
-            _databaseContext.Profile.Include(user => user.Stogares).FirstOrDefault(user => user.Id == profileId)
-            ?? throw new HttpException(400, MessageDefine.NOT_FOUND_USER);
+            _databaseContext
+                .Profile.Include(user => user.Stogares)
+                .FirstOrDefault(user =>
+                    user.Id == _jwtService.Infomation().profileId
+                )
+            ?? throw new HttpException(400, MessageContants.NOT_FOUND_ACCOUNT);
         var record =
             user.Stogares.FirstOrDefault(stogare => stogare.Id == stogareId)
-            ?? throw new HttpException(400, MessageDefine.NOT_FOUND_STOGARE);
+            ?? throw new HttpException(400, MessageContants.NOT_FOUND_STOGARE);
 
         var groupStogare = _databaseContext
-            .Group.Include(group => group.DataGroups)
-            .SelectMany(item => item.DataGroups)
+            .Group.Include(group => group.Stogares)
+            .SelectMany(item => item.Stogares)
             .Where(stogate => stogate.Type == StogareType.Folder);
 
         var stogares = user.Stogares.Where(stogare =>
-            stogare.Type == StogareType.Folder && stogare.Status == StogareStatus.Normal
+            stogare.Type == StogareType.Folder
+            && stogare.Status == StogareStatus.Normal
         );
-        var withoutGroup = stogares.Where(stogare => groupStogare.Any(item => item.Id == stogare.Id) is false);
+        var withoutGroup = stogares.Where(stogare =>
+            groupStogare.Any(item => item.Id == stogare.Id) is false
+        );
 
         var children = RecursiveChildren([stogareId]);
-        var withoutChildren = withoutGroup
-            .Where(stogare =>
-                children.Any(item => stogare.Id == item) is false && (record.Parent == stogare.Id) is false
-            )
-            .ToList();
+        var withoutChildren = withoutGroup.Where(stogare =>
+            children.Any(item => stogare.Id == item) is false
+            && (record.Parent == stogare.Id) is false
+        );
 
         return withoutChildren;
     }
 
-    private bool ValidPermission(string profileId, string stogareId)
+    private static bool ValidPermission(Guid profileId, Guid stogareId)
     {
         return true;
         // if (stogareId is null)
@@ -369,20 +458,24 @@ public class StogareService(DatabaseContext databaseContext, IWSConnection conne
 
         // var stogare =
         //     _databaseContext.Stogare.FirstOrDefault(stogare =>
-        //         stogare.Id == stogareId && stogare.ProfileId == profileId
-        //     ) ?? throw new HttpException(400, MessageDefine.NOT_FOUND_STOGARE);
+        //         stogare.Id == stogareId && stogare.ProfileId == _jwtService.Infomation().profileId
+        //     ) ?? throw new HttpException(400, MessageContants.NOT_FOUND_STOGARE);
 
         // if (stogare.GroupId is not null)
         // {
         //     var group =
         //         _databaseContext.Group.FirstOrDefault(group => group.Id == stogare.GroupId)
-        //         ?? throw new HttpException(400, MessageDefine.NOT_FOUND_GROUP);
+        //         ?? throw new HttpException(400, MessageContants.NOT_FOUND_GROUP);
 
-        //     bool inGroup = group.Members.Any(member => member.ProfileId == profileId) || group.ProfileId == profileId;
+        //     bool inGroup = group.Members.Any(member => member.ProfileId == _jwtService.Infomation().profileId) || group.ProfileId == _jwtService.Infomation().profileId;
         //     return inGroup;
         // }
         // return false;
     }
 
-    private void RealtimeUpdate() => _connectionService.InvokeAllUser(nameof(HubMethodName.UpdateListFile), null);
+    private void RealtimeUpdate() =>
+        _connectionService.InvokeAllUser(
+            nameof(HubMethodName.UpdateListFile),
+            null
+        );
 }

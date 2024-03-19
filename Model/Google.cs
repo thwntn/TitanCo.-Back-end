@@ -27,7 +27,7 @@ public class MGoogle
         public string id_token;
     }
 
-    public class GetProfileResponse
+    public class ProfileResponse
     {
         public string sub;
         public string name;

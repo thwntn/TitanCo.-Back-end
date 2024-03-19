@@ -1,47 +1,67 @@
 namespace ReferenceService;
 
-public class ProductService(DatabaseContext databaseContext) : IProduct
+public class ProductService(DatabaseContext databaseContext, IJwt jwtService, IRole roleService) : IProduct
 {
     private readonly DatabaseContext _databaseContext = databaseContext;
+    private readonly IRole _roleService = roleService;
+    private readonly IJwt _jwtService = jwtService;
 
-    public List<Product> List(string profileId)
+    public IEnumerable<Product> List()
     {
-        var products = _databaseContext
+        IQueryable<Product> products = _databaseContext
             .Product.Include(product => product.ImageProducts)
-            .Include(product => product.Profile)
-            .Where(product => product.ProfileId == profileId)
-            .ToList();
-        return products;
+            .Include(product => product.InvoiceProducts)
+            .Include(product => product.Profile);
+
+        Account account = _jwtService.Account();
+        if (
+            // assign.full.customer
+            _roleService.CheckRoles(account.RoleAccounts, [nameof(RoleContant.ProductShowFull)])
+            // onwer.account
+            || account.ParentAccountId == Guid.Empty
+        )
+            return products.Where(product =>
+                _jwtService.AccountSystem().Select(account => account.Profile.Id).Contains(product.ProfileId)
+            );
+        else
+            return products.Where(product => product.ProfileId == account.Profile.Id);
     }
 
-    public Product Create(string profileId, ProductDatatransfomer.Create create)
+    public Product Create(ProductDatatransfomer.Create create)
     {
-        var product = NewtonsoftJson.Map<Product>(create);
+        Product product = NewtonsoftJson.Map<Product>(create);
         product.Created = DateTime.Now;
-        product.ProfileId = profileId;
+        product.ProfileId = _jwtService.Infomation().profileId;
 
         _databaseContext.Add(product);
         _databaseContext.SaveChanges();
         return product;
     }
 
-    public string Remove(string profileId, Guid productId)
+    public string Remove(Guid productId)
     {
-        var product =
+        Product product =
             _databaseContext
-                .Product.Where(product => product.Id == productId && product.ProfileId == profileId)
-                .FirstOrDefault() ?? throw new HttpException(400, MessageDefine.NOT_FOUND_PRODUCT);
+                .Product.Where(product =>
+                    product.Id == productId && product.ProfileId == _jwtService.Infomation().profileId
+                )
+                .FirstOrDefault() ?? throw new HttpException(400, MessageContants.NOT_FOUND_PRODUCT);
+
         _databaseContext.Remove(product);
+        _databaseContext.SaveChanges();
+
         return string.Empty;
     }
 
-    public async Task<List<ImageProduct>> AddPicture(Guid productId, IFormFileCollection files)
+    public async Task<IEnumerable<ImageProduct>> AddPicture(Guid productId, IFormFileCollection files)
     {
-        var save = files.Select(async item => await Reader.Save(item, string.Empty));
+        IEnumerable<Task<MStream.Save>> save = files.Select(async item => await Reader.Save(item, string.Empty));
 
-        var imageProducts = (await Task.WhenAll(save))
-            .Select(item => new ImageProduct { Url = Reader.CreateURL(item.GetFileName()), ProductId = productId })
-            .ToList();
+        IEnumerable<ImageProduct> imageProducts = (await Task.WhenAll(save)).Select(item => new ImageProduct
+        {
+            Url = Reader.CreateURL(item.GetFileName()),
+            ProductId = productId
+        });
 
         _databaseContext.AddRange(imageProducts);
         _databaseContext.SaveChanges();

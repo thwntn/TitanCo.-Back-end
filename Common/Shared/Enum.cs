@@ -9,6 +9,12 @@ public enum EnvironmentKey
     Database,
     Stogare,
     Media,
+    Migration,
+    Swagger,
+    VersionSwagger,
+    SwaggerNameReplace,
+    SwaggerNameTo,
+    TokenScheme,
     OauthHost,
     ProfileHost,
     ClientId,
@@ -30,13 +36,14 @@ public enum Policy
     Cors
 }
 
-public enum UserType
+public enum AccounType
 {
     Email = 1,
-    Google = 2
+    Google = 2,
+    SubAccount = 3
 }
 
-public enum UserStatus
+public enum AccountStatus
 {
     Open = 0,
     Valid = 1,
@@ -96,8 +103,14 @@ public enum StatusNote
     Remove = 2,
 }
 
+public enum DiscountStatus
+{
+    Active = 0,
+    Suspend = 1,
+}
+
 public class StogareDefault
 {
-    public const string ROOT_FOLDER = "39a28547-f6c8-427d-a95d-164a2dd092bd";
-    public const string GROUP_ROOT_FOLDER = "0435f92b-0c2c-46ef-9cfb-af0c44932701";
+    public static readonly Guid ROOT_FOLDER = new("39a28547-f6c8-427d-a95d-164a2dd092bd");
+    public static readonly Guid GROUP_ROOT_FOLDER = new("0435f92b-0c2c-46ef-9cfb-af0c44932701");
 }

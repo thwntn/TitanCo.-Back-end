@@ -5,86 +5,131 @@ public class AuthService(
     IJwt jwtService,
     IMail mailService,
     IGoogle googleService,
-    UserManager<IdentityUser> userManager,
-    SignInManager<IdentityUser> signInManager
+    IRole roleService,
+    IProfile profileService
 ) : IAuth
 {
     private readonly DatabaseContext _databaseContext = databaseContext;
     private readonly IJwt _jwtService = jwtService;
+    private readonly IRole _roleService = roleService;
     private readonly IMail _mailService = mailService;
     private readonly IGoogle _googleService = googleService;
-    private readonly UserManager<IdentityUser> _userManager = userManager;
-    private readonly SignInManager<IdentityUser> _signInManager = signInManager;
+    private readonly IProfile _profileService = profileService;
 
-    public string Code(string profileId, string code)
+    public async Task<Account> Signup(AuthDataTransformer.Signup signup)
     {
-        var user =
-            _databaseContext.Profile.FirstOrDefault(user => user.Id == profileId)
-            ?? throw new HttpException(400, MessageDefine.NOT_FOUND_USER);
-        if (user.Code != code)
-            return MessageDefine.CONFIRM_CODE_NOT_SUCCESS;
+        var existEmail = _databaseContext.Account.Any(user => user.Email == signup.Email);
+        if (existEmail)
+            throw new HttpException(400, MessageContants.EMAIL_EXIST);
 
-        user.Status = UserStatus.Open;
+        string hashPassword = Cryptography.Md5(signup.Password);
+        string code = Cryptography.RandomCode();
+
+        Account account = new(signup.Email, hashPassword, string.Empty, code, AccountStatus.Valid, AccounType.Email);
+        _databaseContext.Add(account);
+
+        Profile profile = new(signup.Name, signup.Email) { AccountId = account.Id };
+        _databaseContext.Add(profile);
+
+        _databaseContext.SaveChanges();
+        _roleService.MakeAdminAccount(account.Id);
+        await _mailService.SendCode(account.Email, code);
+
+        return account;
+    }
+
+    public bool VerifyEmail(AuthDataTransformer.VerifyEmail verifyEmail)
+    {
+        var account =
+            _databaseContext
+                .Account.Include(account => account.Profile)
+                .FirstOrDefault(account => account.Email == verifyEmail.Email)
+            ?? throw new HttpException(400, MessageContants.NOT_FOUND_EMAIL);
+        return true;
+    }
+
+    public async Task<Account> SigninWithPassword(AuthDataTransformer.Signin signin)
+    {
+        string hashPassword = Cryptography.Md5(signin.Password);
+
+        var account =
+            _databaseContext
+                .Account.Include(account => account.Profile)
+                .Include(account => account.RoleAccounts)
+                .ThenInclude(roleAccount => roleAccount.Role)
+                .FirstOrDefault(account => account.Email == signin.Email && account.HashPassword == hashPassword)
+            ?? throw new HttpException(400, MessageContants.NOT_FOUND_ACCOUNT);
+
+        if (account.AccountStatus == AccountStatus.Open)
+            account.Token = _jwtService.GenerateToken(account.Profile.Id, account.Id, account.ParentAccountId);
+        else
+        {
+            string code = Cryptography.RandomCode();
+            account.Code = code;
+            _databaseContext.Update(account);
+            await _mailService.SendCode(account.Email, code);
+        }
+
+        LoginAccount accountLogin = new() { Created = DateTime.Now, AccountId = account.Id };
+        _databaseContext.Add(accountLogin);
+        _databaseContext.SaveChanges();
+        return account;
+    }
+
+    public Account ConfirmCode(Guid accountId, string code)
+    {
+        var account = _profileService.GeAccoutWithRole(accountId);
+        if (account.Code != code)
+            throw new HttpException(400, MessageContants.CONFIRM_CODE_NOT_SUCCESS);
+
+        account.AccountStatus = AccountStatus.Open;
+        _databaseContext.Update(account);
+        _databaseContext.SaveChanges();
+
+        account.Token = _jwtService.GenerateToken(account.Profile.Id, account.Id, account.ParentAccountId);
+
+        return account;
+    }
+
+    public async Task<string> ResetPassword(string email)
+    {
+        var account =
+            _databaseContext
+                .Account.Include(account => account.Profile)
+                .FirstOrDefault(account => account.Email == email)
+            ?? throw new HttpException(400, MessageContants.NOT_FOUND_ACCOUNT);
+
+        string password = Cryptography.RandomCode();
+        account.HashPassword = Cryptography.Md5(password);
+
+        await _mailService.SendCode(email, password);
+
+        _databaseContext.Update(account);
+        _databaseContext.SaveChanges();
+
+        return MessageContants.REQUEST_SUCCESS;
+    }
+
+    public string ChangePassword(AuthDataTransformer.ChangePassword changePassword)
+    {
+        string hashPassword = Cryptography.Md5(changePassword.Password);
+        var user =
+            _databaseContext
+                .Account.Include(user => user.Profile)
+                .FirstOrDefault(user => user.Email == changePassword.Email && user.HashPassword == hashPassword)
+            ?? throw new HttpException(400, MessageContants.NOT_FOUND_ACCOUNT);
+
+        if (changePassword.NewPassword == changePassword.ConfirmPassword)
+            user.HashPassword = Cryptography.Md5(changePassword.NewPassword);
+        else
+            throw new HttpException(400, MessageContants.PASSWORD_NOT_MATCH);
+
+        _mailService.SendCode(changePassword.Email, changePassword.NewPassword);
+
         _databaseContext.Update(user);
         _databaseContext.SaveChanges();
 
-        return MessageDefine.CONFIRM_CODE_SUCCESS;
-    }
-
-    public async Task<Profile> Signup(AuthDataTransformer.Signup signup)
-    {
-        string code = Cryptography.RandomCode().ToString();
-        Profile profile =
-            new()
-            {
-                Id = Cryptography.RandomGuid(),
-                Name = signup.name,
-                Avatar = string.Empty,
-                Email = signup.username,
-                Code = code,
-                Status = UserStatus.Valid,
-                CoverPicture = string.Empty,
-            };
-
-        // @Create Identity
-        IdentityUser identityUser = new() { Email = profile.Email, UserName = profile.Email, };
-        var create = await _userManager.CreateAsync(identityUser, signup.password);
-        if (create.Succeeded is false)
-            throw new HttpException(400, create);
-        profile.UserId = identityUser.Id;
-
-        // @Add Profile
-        _databaseContext.Add(profile);
-        _databaseContext.SaveChanges();
-        _mailService.SendCode(profile.Email, code);
-
-        return profile;
-    }
-
-    public async Task<MLogin.Info> Signin(AuthDataTransformer.Signin signin)
-    {
-        string hashPassword = Cryptography.Md5(signin.password);
-        var user = await _signInManager.PasswordSignInAsync(signin.username, signin.password, false, false);
-
-        if (user.Succeeded is false)
-            throw new HttpException(401, MessageDefine.NOT_FOUND_USER);
-
-        var profile =
-            _databaseContext.Profile.FirstOrDefault(profile => profile.Email == signin.username)
-            ?? throw new HttpException(400, MessageDefine.NOT_FOUND_USER);
-
-        MLogin.Info info = NewtonsoftJson.Map<MLogin.Info>(profile);
-        if (profile.Status == UserStatus.Open)
-            info.token = _jwtService.GenerateToken(profile.Id.ToString());
-        else
-        {
-            string code = $"{Cryptography.RandomCode()}";
-            profile.Code = code;
-            _databaseContext.Update(user);
-            _databaseContext.SaveChanges();
-            _mailService.SendCode(profile.Email, code);
-        }
-        return info;
+        return MessageContants.REQUEST_SUCCESS;
     }
 
     public async Task<Profile> LoginGoogle(string authCode)
@@ -95,29 +140,20 @@ public class AuthService(
             return null;
 
         MGoogle.AccessTokenResponse objectToken = NewtonsoftJson.Map<MGoogle.AccessTokenResponse>(fromGg);
-        MGoogle.GetProfileResponse getProfileResponse = await _googleService.GetProfile(objectToken.access_token);
+        MGoogle.ProfileResponse getProfileResponse = await _googleService.Profile(objectToken.access_token);
 
         if (getProfileResponse is null)
             return null;
 
-        MGoogle.GetProfileResponse info = NewtonsoftJson.Map<MGoogle.GetProfileResponse>(getProfileResponse);
-        Profile profile = _databaseContext.Profile.FirstOrDefault(profile => profile.Google.Sub == info.sub);
-        Profile handler = InsertInfo(info);
+        MGoogle.ProfileResponse info = NewtonsoftJson.Map<MGoogle.ProfileResponse>(getProfileResponse);
+        var profile = _databaseContext.Account.FirstOrDefault(user => user.Google.Sub == info.sub);
+        var handler = InsertInfo(info);
         return handler;
     }
 
-    private Profile InsertInfo(MGoogle.GetProfileResponse info)
+    private Profile InsertInfo(MGoogle.ProfileResponse info)
     {
-        Profile profile =
-            new()
-            {
-                Google = new() { Sub = info.sub, Picture = info.picture },
-                Type = UserType.Google,
-                Name = info.name,
-                Email = string.Empty,
-                Status = UserStatus.Open,
-                Avatar = info.picture
-            };
+        Profile profile = new(string.Empty, string.Empty);
 
         _databaseContext.Add(profile);
         _databaseContext.SaveChanges();

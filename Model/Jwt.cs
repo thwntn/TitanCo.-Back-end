@@ -1,8 +1,10 @@
 namespace ReferenceModel;
 
-public class JwtPayload
+public class Infomation
 {
-    public string userId;
+    public Guid profileId;
+    public Guid accountId;
+    public Guid parentId;
     public string role;
     public int nbf;
     public int exp;

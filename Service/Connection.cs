@@ -2,13 +2,13 @@ namespace ReferenceService;
 
 public class WSConnection : IWSConnection
 {
-    public void Init(IClientProxy clientProxy, string connectionId, string userId)
+    public void Init(IClientProxy clientProxy, string connectionId, string accountId)
     {
         var connections = Store.GetInstance().GetConnections();
-        if (connections.TryGetValue(userId, out List<ClientHub> value))
-            value.Add(new(userId, connectionId, clientProxy));
+        if (connections.TryGetValue(accountId, out List<ClientHub> value))
+            value.Add(new(accountId, connectionId, clientProxy));
         else
-            connections.Add(userId, [new(userId, connectionId, clientProxy)]);
+            connections.Add(accountId, [new(accountId, connectionId, clientProxy)]);
     }
 
     public void Disconnect(string connectionId)
@@ -19,9 +19,9 @@ public class WSConnection : IWSConnection
             hubs.Remove(hub.First());
     }
 
-    public void InvokeWithUserId(string userId, string hubMethodName, object data)
+    public void InvokeWithaccountId(string accountId, string hubMethodName, object data)
     {
-        if (Store.GetInstance().GetConnections().TryGetValue(userId, out var connection))
+        if (Store.GetInstance().GetConnections().TryGetValue(accountId, out var connection))
             connection.ForEach(async item => await item.clientProxy.SendAsync(hubMethodName, data));
     }
 

@@ -22,7 +22,7 @@ public class MapHub(IWSConnection connection, IWSManager managerRoomHub) : Hub
             Clients.Clients(Context.ConnectionId).SendAsync(nameof(HubMethodName.Error), transfomer);
             return;
         }
-        _connection.Init(Clients.Clients(Context.ConnectionId), Context.ConnectionId, transfomer.data.userId);
+        _connection.Init(Clients.Clients(Context.ConnectionId), Context.ConnectionId, transfomer.data.accountId);
     }
 
     // [HubMethodName(nameof(SignListen))]

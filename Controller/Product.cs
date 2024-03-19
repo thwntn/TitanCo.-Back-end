@@ -2,16 +2,15 @@ namespace ReferenceController;
 
 [ApiController]
 [Route(nameof(Product))]
-public class Product(IProduct productService, IJwt jwtService) : Controller
+public class Product(IProduct productService) : Controller
 {
     private readonly IProduct _productService = productService;
-    private readonly IJwt _jwtService = jwtService;
 
     [Authorize]
     [HttpGet]
     public IActionResult List()
     {
-        var products = _productService.List(_jwtService.ReadToken(Request).userId);
+        var products = _productService.List();
         return Ok(products);
     }
 
@@ -19,8 +18,16 @@ public class Product(IProduct productService, IJwt jwtService) : Controller
     [HttpPost]
     public IActionResult Create([FromBody] ProductDatatransfomer.Create create)
     {
-        var product = _productService.Create(_jwtService.ReadToken(Request).userId, create);
+        var product = _productService.Create(create);
         return Ok(product);
+    }
+
+    [Authorize]
+    [HttpDelete("{productId}")]
+    public IActionResult Remove([FromRoute] Guid productId)
+    {
+        var message = _productService.Remove(productId);
+        return Ok(message);
     }
 
     [Authorize]

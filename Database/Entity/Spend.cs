@@ -3,7 +3,8 @@ namespace ReferenceDatabase;
 public class Spend
 {
     [Key]
-    public string Id { get; set; }
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public Guid Id { get; set; }
 
     [Required]
     public string Name { get; set; }
@@ -18,7 +19,7 @@ public class Spend
     public DateTime Created { get; set; }
 
     [ForeignKey(nameof(ProfileId))]
-    public string ProfileId { get; set; }
+    public Guid ProfileId { get; set; }
 
     public Profile Profile { get; set; }
 }

@@ -30,4 +30,12 @@ public class Customer(IJwt jwtService, ICustomer customerService) : Controller
         var customer = await _customerService.AddImage(customerId, form.Files[0]);
         return Ok(customer);
     }
+
+    [Authorize]
+    [HttpDelete("{customerId}")]
+    public IActionResult Remove([FromRoute] Guid customerId)
+    {
+        string message = _customerService.Remove(customerId);
+        return Ok(message);
+    }
 }

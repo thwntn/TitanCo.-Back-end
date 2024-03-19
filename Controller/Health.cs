@@ -4,7 +4,7 @@ namespace ReferenceController;
 [Route(nameof(Health))]
 public class Health(IProfile userService) : Controller
 {
-    private readonly IProfile _userService = userService;
+    private readonly IProfile _accountService = userService;
 
     [HttpGet]
     public IActionResult Ping()
@@ -15,7 +15,7 @@ public class Health(IProfile userService) : Controller
     [HttpGet(nameof(List))]
     public IActionResult List()
     {
-        var info = _userService.List();
+        var info = _accountService.List();
         return Ok(info);
     }
 }

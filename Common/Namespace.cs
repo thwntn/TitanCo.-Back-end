@@ -1,9 +1,12 @@
+global using System.ComponentModel;
 global using System.ComponentModel.DataAnnotations;
 global using System.ComponentModel.DataAnnotations.Schema;
+global using System.Diagnostics.CodeAnalysis;
 global using System.IdentityModel.Tokens.Jwt;
 global using System.IO.Compression;
 global using System.Net;
 global using System.Net.Http.Headers;
+global using System.Net.Mail;
 global using System.Security.Cryptography;
 global using System.Text;
 global using Microsoft.AspNetCore.Authentication.JwtBearer;

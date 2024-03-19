@@ -1,76 +1,95 @@
-using Microsoft.EntityFrameworkCore.Internal;
-
 namespace ReferenceService;
 
-public class NotificationService(DatabaseContext databaseContext, IWSConnection wsConnectionService) : INotification
+public class NotificationService(
+    DatabaseContext databaseContext,
+    IWSConnection wsConnectionService,
+    IJwt jwtService
+) : INotification
 {
     private readonly DatabaseContext _databaseContext = databaseContext;
     private readonly IWSConnection _wsConnectionService = wsConnectionService;
+    private readonly IJwt _jwtService = jwtService;
 
-    public List<Notification> List(string profileId)
+    public IEnumerable<Notification> List()
     {
         var notifications = _databaseContext
             .Notification.Include(notification => notification.Profile)
-            .Where(notification => notification.ProfileId == profileId)
+            .Where(notification =>
+                notification.ProfileId == _jwtService.Infomation().profileId
+            )
             .OrderBy(item => item.IsRead)
             .ToList();
 
-        var result = notifications
-            .Join(
-                _databaseContext.Profile,
-                notification => notification.FromId,
-                user => user.Id,
-                (notification, user) =>
-                {
-                    notification.From = user;
-                    return notification;
-                }
-            )
-            .ToList();
+        var result = notifications.Join(
+            _databaseContext.Profile,
+            notification => notification.FromId,
+            user => user.Id,
+            (notification, user) =>
+            {
+                notification.From = user;
+                return notification;
+            }
+        );
+
         return result;
     }
 
-    public Notification Add(string profileId, string fromUser, NotificationType type, object jsonData)
+    public Notification Add(
+        Guid toAccount,
+        Guid fromAccount,
+        NotificationType type,
+        object jsonData
+    )
     {
         Notification notification =
             new()
             {
                 JsonData = NewtonsoftJson.Serialize(jsonData),
                 Type = type,
-                FromId = fromUser,
+                FromId = fromAccount,
                 IsRead = false,
                 Handle = false,
-                ProfileId = profileId
+                ProfileId = _jwtService.Infomation().profileId
             };
 
         _databaseContext.Add(notification);
         _databaseContext.SaveChanges();
 
-        RealtimeUpdate(profileId);
+        RealtimeUpdate(_jwtService.Infomation().profileId);
         return notification;
     }
 
-    public Notification Read(string profileId, string notificationId)
+    public Notification Read(Guid notificationId)
     {
         var notification =
             _databaseContext.Notification.FirstOrDefault(notification =>
-                notification.Id == notificationId && notification.ProfileId == profileId
-            ) ?? throw new HttpException(400, MessageDefine.NOT_FOUND_NOTIFICATION);
+                notification.Id == notificationId
+                && notification.ProfileId == _jwtService.Infomation().profileId
+            )
+            ?? throw new HttpException(
+                400,
+                MessageContants.NOT_FOUND_NOTIFICATION
+            );
 
         notification.IsRead = true;
         _databaseContext.Update(notification);
         _databaseContext.SaveChanges();
 
-        RealtimeUpdate(profileId);
+        RealtimeUpdate(_jwtService.Infomation().profileId);
         return notification;
     }
 
-    public Notification Handle(string profileId, string notificationId)
+    public Notification Handle(Guid notificationId)
     {
         var notification =
             _databaseContext.Notification.FirstOrDefault(notification =>
-                notification.Id == notificationId && notification.ProfileId == profileId
-            ) ?? throw new HttpException(400, MessageDefine.NOT_FOUND_NOTIFICATION);
+                notification.Id == notificationId
+                && notification.ProfileId == _jwtService.Infomation().profileId
+            )
+            ?? throw new HttpException(
+                400,
+                MessageContants.NOT_FOUND_NOTIFICATION
+            );
 
         notification.Handle = true;
         notification.IsRead = true;
@@ -78,13 +97,13 @@ public class NotificationService(DatabaseContext databaseContext, IWSConnection 
         _databaseContext.Notification.Update(notification);
         _databaseContext.SaveChanges();
 
-        RealtimeUpdate(profileId);
+        RealtimeUpdate(_jwtService.Infomation().profileId);
         return notification;
     }
 
-    private void RealtimeUpdate(string profileId)
+    private void RealtimeUpdate(Guid profileId)
     {
-        _wsConnectionService.InvokeWithUserId(
+        _wsConnectionService.InvokeWithaccountId(
             string.Concat(profileId),
             nameof(HubMethodName.UpdateNotification),
             string.Empty

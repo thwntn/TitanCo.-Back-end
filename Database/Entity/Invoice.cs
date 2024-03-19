@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace ReferenceDatabase;
 
 public class Invoice
@@ -18,32 +16,28 @@ public class Invoice
     public DateTime Updated { get; set; }
 
     [Required]
-    public DateTime DueDate { get; set; }
-
-    [Required]
-    public double Sale { get; set; }
-
-    [Required]
     public string Description { get; set; }
 
     [Required]
-    public double Discount { get; set; }
+    public List<InvoiceProduct> InvoiceProducts { get; set; }
 
-    public ICollection<InvoiceProduct> InvoiceProducts { get; set; }
+    public List<InvoiceDiscount> InvoiceDiscounts { get; set; }
 
     [ForeignKey(nameof(ProfileId))]
-    public string ProfileId { get; set; }
+    public Guid ProfileId { get; set; }
 
     public Profile Profile { get; set; }
 
-    [ForeignKey(nameof(CustomerId))]
     [AllowNull]
+    [ForeignKey(nameof(CustomerId))]
     public Guid CustomerId { get; set; }
 
+    [DeleteBehavior(DeleteBehavior.Restrict)]
     public Customer Customer { get; set; }
 
     [ForeignKey(nameof(PaymentId))]
     public Guid PaymentId { get; set; }
 
+    [DeleteBehavior(DeleteBehavior.Restrict)]
     public Payment Payment { get; set; }
 }

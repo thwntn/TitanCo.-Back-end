@@ -5,7 +5,7 @@ public class ShareService(IWSConnection connectionService) : IShare
     private readonly string _pathFolder = Environment.GetEnvironmentVariable(nameof(EnvironmentKey.Media));
     private readonly IWSConnection _connectionService = connectionService;
 
-    public async Task Transfer(IFormFile file, int userId)
+    public async Task Transfer(IFormFile file, int accountId)
     {
         string tempFolderName = Cryptography.RandomGuid();
         MStream.Save save = await Reader.Save(file, tempFolderName);
@@ -20,6 +20,6 @@ public class ShareService(IWSConnection connectionService) : IShare
             save.GetSize(),
             new()
         );
-        _connectionService.InvokeWithUserId(string.Concat(userId), nameof(HubMethodName.UpdateListFile), compressItem);
+        _connectionService.InvokeWithaccountId(string.Concat(accountId), nameof(HubMethodName.UpdateListFile), compressItem);
     }
 }

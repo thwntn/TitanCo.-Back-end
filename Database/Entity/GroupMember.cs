@@ -4,12 +4,12 @@ namespace ReferenceDatabase;
 public class GroupMember
 {
     [ForeignKey(nameof(GroupId))]
-    public string GroupId { get; set; }
+    public Guid GroupId { get; set; }
 
     public Group Group { get; set; }
 
     [ForeignKey(nameof(ProfileId))]
-    public string ProfileId { get; set; }
+    public Guid ProfileId { get; set; }
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public Profile Profile { get; set; }

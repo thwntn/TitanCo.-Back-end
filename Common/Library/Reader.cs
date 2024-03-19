@@ -5,7 +5,6 @@ public class Reader
     private static string _stogareHost;
     private static string _prefix;
 
-    // @Environment Configure
     private static readonly string _environtmentFile = ".env";
     private static readonly char _prefixContent = '"';
     private static readonly char _prefixBreak = '=';

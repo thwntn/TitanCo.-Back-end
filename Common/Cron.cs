@@ -1,16 +1,15 @@
-using System.Configuration;
-using Microsoft.Extensions.Options;
-
 namespace ReferenceFeature;
 
 public class CronJob
 {
     public static async void Configure(WebApplicationBuilder builder)
     {
-        var job = JobBuilder.Create<CronJobService>().WithIdentity(nameof(CronJobService)).Build();
-        job.JobDataMap.Put(nameof(ServiceProvider), builder.Services.BuildServiceProvider());
+        ServiceProvider provider = builder.Services.BuildServiceProvider();
 
-        var trigger = TriggerBuilder
+        IJobDetail job = JobBuilder.Create<CronJobService>().WithIdentity(nameof(CronJobService)).Build();
+        job.JobDataMap.Put(nameof(ServiceProvider), provider);
+
+        ITrigger trigger = TriggerBuilder
             .Create()
             .WithIdentity(nameof(CronJobService))
             .StartNow()
@@ -21,6 +20,11 @@ public class CronJob
         var scheduler = await schedulerFactory.GetScheduler();
         await scheduler.ScheduleJob(job, trigger);
 
-        await scheduler.Start();
+        IRole roleService = provider.GetService<IRole>();
+        if (Convert.ToBoolean(Environment.GetEnvironmentVariable(nameof(EnvironmentKey.Migration))) is false)
+        {
+            roleService.Sync();
+            await scheduler.Start();
+        }
     }
 }

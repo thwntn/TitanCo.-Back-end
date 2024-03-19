@@ -1,7 +1,11 @@
 namespace ReferenceDatabase;
 
-public class DatabaseContext(DbContextOptions<DatabaseContext> options) : IdentityDbContext(options)
+public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbContext(options)
 {
+    public DbSet<Account> Account { get; set; }
+    public DbSet<Role> Role { get; set; }
+    public DbSet<RoleAccount> RoleAccount { get; set; }
+    public DbSet<LoginAccount> LoginAccount { get; set; }
     public DbSet<Profile> Profile { get; set; }
     public DbSet<Notification> Notification { get; set; }
     public DbSet<Google> Google { get; set; }
@@ -16,5 +20,6 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : Identi
     public DbSet<Invoice> Invoice { get; set; }
     public DbSet<Customer> Customer { get; set; }
     public DbSet<InvoiceProduct> InvoiceProduct { get; set; }
+    public DbSet<InvoiceDiscount> InvoiceDiscount { get; set; }
     public DbSet<Discount> Discount { get; set; }
 }

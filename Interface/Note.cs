@@ -2,13 +2,13 @@ namespace ReferenceInterface;
 
 public interface INote
 {
-    List<Note> List(string profileId, int status);
-    Note Get(string profileId, string noteId);
-    Note Create(string profileId, NoteDatatransformer.Create create);
-    Note Update(string profileId, NoteDatatransformer.Update update);
-    string Remove(string profileId, string noteId);
-    Note MoveToTrash(string profileId, string noteId);
-    Note Restore(string profileId, string noteId);
-    Note Archive(string profileId, string noteId);
-    Note UpdateContent(string profileId, string noteId, NoteDatatransformer.UpdateContent updateContent);
+    IEnumerable<Note> List(int status);
+    Note Get(Guid noteId);
+    Note Create(NoteDatatransformer.Create create);
+    Note Update(NoteDatatransformer.Update update);
+    string Remove(Guid noteId);
+    Note MoveToTrash(Guid noteId);
+    Note Restore(Guid noteId);
+    Note Archive(Guid noteId);
+    Note UpdateContent(Guid noteId, NoteDatatransformer.UpdateContent updateContent);
 }

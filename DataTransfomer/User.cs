@@ -5,9 +5,12 @@ public class ProfileDataTransfromer
     public class Update
     {
         [JsonRequired]
-        public string name;
+        public string Name { get; set; }
 
         [JsonRequired]
-        public string avatar;
+        public string Phone { get; set; }
+
+        [JsonRequired]
+        public string Address { get; set; }
     }
 }

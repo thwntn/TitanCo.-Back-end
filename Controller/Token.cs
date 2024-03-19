@@ -9,7 +9,7 @@ public class Token(IJwt jwtService) : Controller
     [HttpGet(nameof(Generate))]
     public IActionResult Generate()
     {
-        string jwt = _jwtService.GenerateToken("1");
+        string jwt = _jwtService.GenerateToken(new(), new(), new());
         return Ok(jwt);
     }
 
@@ -17,7 +17,7 @@ public class Token(IJwt jwtService) : Controller
     [HttpGet(nameof(Read))]
     public IActionResult Read([FromHeader] string authorization, [FromQuery] string jwt)
     {
-        ReferenceModel.JwtPayload claimJwt = _jwtService.ReadToken(Request);
+        Infomation claimJwt = _jwtService.ReadToken(Request);
         return Ok(claimJwt);
     }
 }

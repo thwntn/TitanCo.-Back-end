@@ -4,31 +4,31 @@ public class GroupDatatransformer
 {
     public class Move
     {
-        public string stogareId;
-        public int destinationId;
+        public Guid StogareId { get; set; }
+        public int DestinationId { get; set; }
     }
 
     public class Create
     {
         [JsonRequired]
-        public string groupName;
+        public string GroupName { get; set; }
     }
 
     public class ModifyMember
     {
         [JsonRequired]
-        public List<string> emails;
+        public List<string> Emails { get; set; }
 
         [JsonRequired]
-        public string groupId;
+        public Guid GroupId { get; set; }
     }
 
     public class Rename
     {
         [JsonRequired]
-        public string groupId;
+        public Guid GroupId { get; set; }
 
         [JsonRequired]
-        public string name;
+        public string Name { get; set; }
     }
 }

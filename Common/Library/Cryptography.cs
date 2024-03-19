@@ -14,7 +14,7 @@ public class Cryptography
     public static string Base64UrlEncode(string input) =>
         Convert.ToBase64String(Encoding.UTF8.GetBytes(input)).Replace("+", "-").Replace("/", "_").Replace("=", "");
 
-    public static long RandomCode() => _random.NextInt64(100000, 999999);
+    public static string RandomCode() => _random.NextInt64(100000, 999999).ToString();
 
     public static string Hash(string content)
     {

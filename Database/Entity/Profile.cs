@@ -1,32 +1,31 @@
 namespace ReferenceDatabase;
 
-public class Profile
+public class Profile(string name, string email)
 {
     [Key]
-    public string Id { get; set; }
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public Guid Id { get; set; }
 
     [Required]
-    public string Name { get; set; }
+    public string Name { get; set; } = name;
 
     [Required]
-    public string Avatar { get; set; }
+    public string Avatar { get; set; } = string.Empty;
 
     [Required]
-    public string Email { get; set; }
+    public string Email { get; set; } = email;
 
     [Required]
-    public string CoverPicture { get; set; }
+    public string Phone { get; set; } = string.Empty;
 
     [Required]
-    public string Code { get; set; }
+    public string CoverPicture { get; set; } = string.Empty;
 
-    [Required]
-    public UserStatus Status { get; set; }
+    [AllowNull]
+    public string Address { get; set; }
 
-    [Required]
-    public UserType Type { get; set; }
-
-    public Google Google { get; set; }
+    [ForeignKey(nameof(AccountId))]
+    public Guid AccountId { get; set; }
 
     public ICollection<Notification> Notifications { get; set; }
 
@@ -42,6 +41,7 @@ public class Profile
 
     public ICollection<Note> Notes { get; set; }
 
-    [ForeignKey(nameof(UserId))]
-    public string UserId { get; set; }
+    public ICollection<Customer> Customers { get; set; }
+
+    public ICollection<Payment> Payments { get; set; }
 }
