@@ -16,8 +16,8 @@ public class Media(IAuth authService) : Controller
     [HttpPost]
     public async Task<IActionResult> Create([FromForm] IFormCollection form, string name)
     {
-        MStream.Save save = await Reader.Save(form.Files[0], string.Empty);
-        save.SetPath(Reader.CreateURL(save.GetPath()));
-        return Ok(save);
+        MStream.Blob blob = await Reader.Save(form.Files[0], string.Empty);
+        blob.SetPath(Reader.CreateURL(blob.GetPath()));
+        return Ok(blob);
     }
 }

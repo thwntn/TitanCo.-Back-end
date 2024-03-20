@@ -30,7 +30,7 @@ public class Invoice
 
     [AllowNull]
     [ForeignKey(nameof(CustomerId))]
-    public Guid CustomerId { get; set; }
+    public Guid? CustomerId { get; set; }
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public Customer Customer { get; set; }

@@ -27,6 +27,39 @@ public class ProductService(DatabaseContext databaseContext, IJwt jwtService, IR
             return products.Where(product => product.ProfileId == account.Profile.Id);
     }
 
+    public Product Info(Guid productId)
+    {
+        IEnumerable<Account> accounts = _jwtService.AccountSystem();
+
+        Product product =
+            _databaseContext
+                .Product.Include(product => product.ImageProducts)
+                .Include(product => product.Profile)
+                .FirstOrDefault(product =>
+                    product.Id == productId && accounts.Any(item => item.Profile.Id == product.ProfileId)
+                ) ?? throw new HttpException(400, MessageContants.NOT_FOUND_PRODUCT);
+
+        return product;
+    }
+
+    public Product Update(Guid productId, ProductDatatransfomer.Update update)
+    {
+        Infomation infomation = _jwtService.Infomation();
+        Product product =
+            _databaseContext.Product.FirstOrDefault(product =>
+                product.Id == productId && product.ProfileId == infomation.profileId
+            ) ?? throw new HttpException(400, MessageContants.NOT_FOUND_PRODUCT);
+
+        product.Description = update.Description;
+        product.Name = update.Name;
+        product.Price = update.Price;
+        product.Sale = update.Sale;
+
+        _databaseContext.Update(product);
+        _databaseContext.SaveChanges();
+        return product;
+    }
+
     public Product Create(ProductDatatransfomer.Create create)
     {
         Product product = NewtonsoftJson.Map<Product>(create);
@@ -55,9 +88,9 @@ public class ProductService(DatabaseContext databaseContext, IJwt jwtService, IR
 
     public async Task<IEnumerable<ImageProduct>> AddPicture(Guid productId, IFormFileCollection files)
     {
-        IEnumerable<Task<MStream.Save>> save = files.Select(async item => await Reader.Save(item, string.Empty));
+        IEnumerable<Task<MStream.Blob>> blob = files.Select(async item => await Reader.Save(item, string.Empty));
 
-        IEnumerable<ImageProduct> imageProducts = (await Task.WhenAll(save)).Select(item => new ImageProduct
+        IEnumerable<ImageProduct> imageProducts = (await Task.WhenAll(blob)).Select(item => new ImageProduct
         {
             Url = Reader.CreateURL(item.GetFileName()),
             ProductId = productId

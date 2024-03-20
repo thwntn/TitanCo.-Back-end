@@ -4,6 +4,8 @@ public interface IProduct
 {
     IEnumerable<Product> List();
     Product Create(ProductDatatransfomer.Create create);
-    string Remove(Guid productId);
     Task<IEnumerable<ImageProduct>> AddPicture(Guid productId, IFormFileCollection files);
+    string Remove(Guid productId);
+    Product Info(Guid productId);
+    Product Update(Guid productId, ProductDatatransfomer.Update update);
 }

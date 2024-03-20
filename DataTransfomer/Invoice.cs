@@ -18,7 +18,6 @@ public class InvoiceDatatransfomer
         [JsonRequired]
         public Guid ProfileId { get; set; }
 
-        [JsonRequired]
         public Guid CustomerId { get; set; }
 
         [JsonRequired]

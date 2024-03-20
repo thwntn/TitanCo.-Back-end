@@ -9,6 +9,10 @@ public class ImageProduct
     [Required]
     public string Url { get; set; }
 
+    [Required]
+    [DefaultValue(false)]
+    public bool IsMain { get; set; }
+
     [ForeignKey(nameof(ProductId))]
     public Guid ProductId { get; set; }
 

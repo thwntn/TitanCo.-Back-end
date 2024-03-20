@@ -64,6 +64,9 @@ public class InvoiceService(DatabaseContext databaseContext, IJwt jwtService, IR
             product.Quanlity
         ));
 
+        if (create.CustomerId == Guid.Empty)
+            invoice.CustomerId = null;
+
         invoice.InvoiceProducts = invoiceProducts.ToList();
         if ((create.DiscountId == Guid.Empty) is false)
         {

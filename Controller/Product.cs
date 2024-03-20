@@ -15,10 +15,26 @@ public class Product(IProduct productService) : Controller
     }
 
     [Authorize]
+    [HttpGet("{productId}")]
+    public IActionResult Info([FromRoute] Guid productId)
+    {
+        var products = _productService.Info(productId);
+        return Ok(products);
+    }
+
+    [Authorize]
     [HttpPost]
     public IActionResult Create([FromBody] ProductDatatransfomer.Create create)
     {
         var product = _productService.Create(create);
+        return Ok(product);
+    }
+
+    [Authorize]
+    [HttpPatch("{productId}")]
+    public IActionResult Update([FromRoute] Guid productId, [FromBody] ProductDatatransfomer.Update update)
+    {
+        var product = _productService.Update(productId, update);
         return Ok(product);
     }
 
